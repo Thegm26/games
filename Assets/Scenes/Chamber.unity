@@ -707,11 +707,11 @@ Transform:
   m_GameObject: {fileID: 144943910}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.02, z: 0.5}
-  m_LocalScale: {x: 0.011, y: 0.011, z: 0.011}
+  m_LocalPosition: {x: 0, y: 0.43, z: 1.1}
+  m_LocalScale: {x: 0.0055, y: 0.0055, z: 0.0055}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 891000584}
+  m_Father: {fileID: 611997964}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &144943912
 MeshRenderer:
@@ -770,11 +770,11 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 144943910}
-  m_Text: "2 LIVE   \u2022   4 BLANK"
+  m_Text: "6 SHELLS\n2 LIVE   \u2022   4 BLANK"
   m_OffsetZ: 0
   m_CharacterSize: 1
   m_LineSpacing: 1
-  m_Anchor: 4
+  m_Anchor: 1
   m_Alignment: 1
   m_TabSize: 4
   m_FontSize: 92
@@ -783,7 +783,7 @@ TextMesh:
   m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
   m_Color:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4285246450
 --- !u!1 &163709398
 GameObject:
   m_ObjectHideFlags: 0
@@ -1544,9 +1544,6 @@ Transform:
   - {fileID: 1765292310}
   - {fileID: 661135084}
   - {fileID: 1396887356}
-  - {fileID: 1406599855}
-  - {fileID: 934171722}
-  - {fileID: 1669786135}
   m_Father: {fileID: 891000584}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &376197999
@@ -7889,7 +7886,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 1.48, z: -1.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 144943911}
   m_Father: {fileID: 891000584}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &611997965
@@ -8909,10 +8907,7 @@ MonoBehaviour:
   openingLoadAnchor: {fileID: 2146000002}
   shellTray: {fileID: 606029201}
   trayCarrier: {fileID: 1396887356}
-  trayCarrierPresentationAnchor: {fileID: 1406599855}
-  trayCarrierExitAnchor: {fileID: 934171722}
   shellRevealCameraAnchor: {fileID: 1162348719}
-  gunChargeCameraAnchor: {fileID: 1669786135}
   openingPumpHandGrip: {fileID: 2026209476}
   playerAimDealerAnchor: {fileID: 89264578}
   playerAimSelfAnchor: {fileID: 1565169345}
@@ -9372,40 +9367,8 @@ Transform:
   - {fileID: 1932542770}
   - {fileID: 252257124}
   - {fileID: 361124326}
-  - {fileID: 144943911}
   - {fileID: 1162348719}
   m_Father: {fileID: 792030522}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &934171721
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 934171722}
-  m_Layer: 0
-  m_Name: Tray Carrier Exit Anchor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &934171722
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 934171721}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.95970607, z: -0, w: 0.2810059}
-  m_LocalPosition: {x: -2.18, y: 0, z: 0.52}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 361124326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &940428251
 GameObject:
@@ -10332,8 +10295,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1162348718}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.1416665, y: -0.3349161, z: 0.05100997, w: 0.93013966}
-  m_LocalPosition: {x: -0.08, y: 1.36, z: -1.38}
+  m_LocalRotation: {x: 0.09848785, y: -0.29726034, z: 0.030843299, w: 0.94920236}
+  m_LocalPosition: {x: 0, y: 1.48, z: -1.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12059,8 +12022,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1396887355}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.95970607, z: -0, w: 0.2810059}
-  m_LocalPosition: {x: -2.2, y: 0, z: -0.72}
+  m_LocalRotation: {x: -0, y: 0.9542982, z: -0, w: 0.29885617}
+  m_LocalPosition: {x: -1.25, y: 0, z: 0.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -12159,37 +12122,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1399317662}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1406599854
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1406599855}
-  m_Layer: 0
-  m_Name: Tray Carrier Presentation Anchor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1406599855
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1406599854}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.95970607, z: -0, w: 0.2810059}
-  m_LocalPosition: {x: -0.98, y: 0, z: -0.22}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 361124326}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1409299696
 GameObject:
   m_ObjectHideFlags: 0
@@ -12713,37 +12645,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1610388393}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1669786134
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1669786135}
-  m_Layer: 0
-  m_Name: Gun Charge Camera Anchor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1669786135
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1669786134}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.09048878, y: -0.045718186, z: 0.004158445, w: 0.9948389}
-  m_LocalPosition: {x: 0.02, y: 1.34, z: -1.22}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 361124326}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1686487747
 GameObject:
   m_ObjectHideFlags: 0

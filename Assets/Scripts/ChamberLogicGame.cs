@@ -20,10 +20,7 @@ public sealed class ChamberLogicGame : MonoBehaviour
     [SerializeField] private Transform openingLoadAnchor;
     [SerializeField] private Transform shellTray;
     [SerializeField] private Transform trayCarrier;
-    [SerializeField] private Transform trayCarrierPresentationAnchor;
-    [SerializeField] private Transform trayCarrierExitAnchor;
     [SerializeField] private Transform shellRevealCameraAnchor;
-    [SerializeField] private Transform gunChargeCameraAnchor;
     [SerializeField] private Transform openingPumpHandGrip;
     [SerializeField] private Transform playerAimDealerAnchor;
     [SerializeField] private Transform playerAimSelfAnchor;
@@ -119,8 +116,7 @@ public sealed class ChamberLogicGame : MonoBehaviour
         if (duelCamera == null || playerWeapon == null || dealerEntity == null || dealerRightHand == null || dealerLeftHand == null ||
             dealerRightGrip == null || dealerLeftGrip == null || dealerSelfRightGrip == null || dealerSelfLeftGrip == null ||
             weaponTableAnchor == null || openingLoadAnchor == null || shellTray == null || trayCarrier == null ||
-            trayCarrierPresentationAnchor == null || trayCarrierExitAnchor == null || shellRevealCameraAnchor == null ||
-            gunChargeCameraAnchor == null || openingPumpHandGrip == null ||
+            shellRevealCameraAnchor == null || openingPumpHandGrip == null ||
             playerAimDealerAnchor == null || playerAimSelfAnchor == null ||
             dealerAimPlayerAnchor == null || dealerAimSelfAnchor == null || weaponPump == null ||
             audioSource == null || mechanicalSource == null || musicSource == null || musicLayerSource == null ||
@@ -241,32 +237,26 @@ public sealed class ChamberLogicGame : MonoBehaviour
         if (roundRevealText != null)
         {
             roundRevealText.gameObject.SetActive(true);
-            roundRevealText.text = "SOMETHING APPROACHES";
-            roundRevealText.color = new Color(0.78f, 0.82f, 0.78f, 1f);
+            roundRevealText.text = string.Empty;
         }
 
-        yield return new WaitForSeconds(0.45f);
-        yield return MoveTrayCarrier(trayCarrierPresentationAnchor, 1.3f);
+        var revealPosition = shellRevealCameraAnchor.localPosition;
+        var revealRotation = shellRevealCameraAnchor.localRotation;
+        yield return MoveCamera(cameraRestPosition, cameraRestRotation, revealPosition, revealRotation, 0.7f);
 
         if (roundRevealText != null)
         {
-            roundRevealText.text = "2 LIVE   •   4 BLANK\nORDER UNKNOWN";
+            roundRevealText.text = "6 SHELLS\n2 LIVE   •   4 BLANK";
             roundRevealText.color = new Color(0.95f, 0.67f, 0.42f, 1f);
         }
         Debug.Log("[Chamber] Loading reveal: 2 live shells and 4 blank shells. Their order is hidden.");
-        var revealPosition = shellRevealCameraAnchor.localPosition;
-        var revealRotation = shellRevealCameraAnchor.localRotation;
-        yield return MoveCamera(cameraRestPosition, cameraRestRotation, revealPosition, revealRotation, 0.72f);
-        yield return new WaitForSeconds(1.6f);
+        yield return new WaitForSeconds(2.5f);
 
-        if (roundRevealText != null) roundRevealText.text = "THE OFFER IS WITHDRAWN";
-        yield return MoveTrayCarrier(trayCarrierExitAnchor, 1f);
+        if (roundRevealText != null) roundRevealText.text = string.Empty;
+        yield return MoveCamera(revealPosition, revealRotation, cameraRestPosition, cameraRestRotation, 0.75f);
         foreach (var shell in shellProps) shell.SetActive(false);
         trayCarrier.gameObject.SetActive(false);
 
-        var chargePosition = gunChargeCameraAnchor.localPosition;
-        var chargeRotation = gunChargeCameraAnchor.localRotation;
-        yield return MoveCamera(revealPosition, revealRotation, chargePosition, chargeRotation, 0.65f);
         yield return MoveDealerHandsToWeapon(false, 0.55f);
         yield return MoveWeapon(openingLoadAnchor, 0.68f);
         AttachHand(dealerLeftHand, openingPumpHandGrip);
@@ -283,7 +273,6 @@ public sealed class ChamberLogicGame : MonoBehaviour
         yield return MoveWeapon(weaponTableAnchor, 0.72f);
         yield return ReturnDealerHands(0.42f);
 
-        yield return MoveCamera(chargePosition, chargeRotation, cameraRestPosition, cameraRestRotation, 0.9f);
         if (roundRevealText != null) roundRevealText.text = "SIX CHARGES COMPLETE\nP(LIVE NEXT) = 2 / 6";
         yield return new WaitForSeconds(2.2f);
         CompleteOpening();
@@ -312,24 +301,6 @@ public sealed class ChamberLogicGame : MonoBehaviour
         }
         duelCamera.localPosition = toPosition;
         duelCamera.localRotation = toRotation;
-    }
-
-    private IEnumerator MoveTrayCarrier(Transform destination, float duration)
-    {
-        var startPosition = trayCarrier.position;
-        var startRotation = trayCarrier.rotation;
-        mechanicalSource.PlayOneShot(shellLoadClip, 0.62f);
-        for (var t = 0f; t < duration; t += Time.deltaTime)
-        {
-            var progress = Mathf.SmoothStep(0f, 1f, t / duration);
-            var spectralBob = Mathf.Sin(progress * Mathf.PI * 3f) * 0.018f;
-            trayCarrier.position = Vector3.Lerp(startPosition, destination.position, progress) + Vector3.up * spectralBob;
-            trayCarrier.rotation = Quaternion.Slerp(startRotation, destination.rotation, progress);
-            yield return null;
-        }
-        trayCarrier.position = destination.position;
-        trayCarrier.rotation = destination.rotation;
-        mechanicalSource.PlayOneShot(shellLoadClip, 0.42f);
     }
 
     private void ResetShellReveal()

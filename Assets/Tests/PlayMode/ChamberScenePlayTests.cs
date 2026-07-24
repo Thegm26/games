@@ -40,10 +40,7 @@ public sealed class ChamberScenePlayTests
                      "Mechanical Duel Table",
                      "The Bearer — Skeleton",
                      "Bearer Shell Tray",
-                     "Tray Carrier Presentation Anchor",
-                     "Tray Carrier Exit Anchor",
                      "Shell Reveal Camera Anchor",
-                     "Gun Charge Camera Anchor",
                      "Opening Pump Hand Grip",
                      "Reload"
                  })
@@ -114,7 +111,7 @@ public sealed class ChamberScenePlayTests
     }
 
     [UnityTest]
-    public IEnumerator OpeningPresentsTrayAndHandsChargeWeaponSixTimes()
+    public IEnumerator OpeningTurnsAsideForShellCountThenChargesWeaponSixTimes()
     {
         yield return LoadChamber();
 
@@ -126,9 +123,11 @@ public sealed class ChamberScenePlayTests
         var weaponRestRotation = weapon.rotation;
         var carrier = GameObject.Find("The Bearer — Skeleton").transform;
         var carrierRestPosition = carrier.localPosition;
-        var presentationAnchor = GameObject.Find("Tray Carrier Presentation Anchor").transform;
-        var exitAnchor = GameObject.Find("Tray Carrier Exit Anchor").transform;
         var tray = GameObject.Find("Bearer Shell Tray").transform;
+        var camera = GameObject.Find("Duel Camera").transform;
+        var cameraRestRotation = camera.localRotation;
+        var revealAnchor = GameObject.Find("Shell Reveal Camera Anchor").transform;
+        var revealText = GameObject.Find("Opening Load Reveal").GetComponent<TextMesh>();
         var firstShell = GameObject.Find("Shotgun Shell 1 — Live").transform;
         var firstShellLocalPosition = firstShell.localPosition;
         var loadingHand = GameObject.Find("Doll Right Hand").transform;
@@ -139,7 +138,9 @@ public sealed class ChamberScenePlayTests
         var maximumPumpTravel = 0f;
         var maximumWeaponLift = 0f;
         var maximumCarrierTravel = 0f;
-        var reachedPresentation = false;
+        var maximumCameraTurn = 0f;
+        var reachedSideView = false;
+        var sawShellCount = false;
         var bothHandsGrippedWeapon = false;
         var shellLeftTray = false;
         var pumpExtended = false;
@@ -152,7 +153,10 @@ public sealed class ChamberScenePlayTests
                 maximumWeaponLift, Vector3.Distance(weaponRestPosition, weapon.position));
             maximumCarrierTravel = Mathf.Max(
                 maximumCarrierTravel, Vector3.Distance(carrierRestPosition, carrier.localPosition));
-            reachedPresentation |= Vector3.Distance(carrier.position, presentationAnchor.position) < 0.05f;
+            maximumCameraTurn = Mathf.Max(
+                maximumCameraTurn, Quaternion.Angle(cameraRestRotation, camera.localRotation));
+            reachedSideView |= Quaternion.Angle(camera.localRotation, revealAnchor.localRotation) < 1f;
+            sawShellCount |= revealText.text == "6 SHELLS\n2 LIVE   •   4 BLANK";
             bothHandsGrippedWeapon |= loadingHand.parent == rearGrip && supportHand.parent == pumpGrip;
             if (!pumpExtended && pumpTravel > 0.045f)
             {
@@ -170,8 +174,10 @@ public sealed class ChamberScenePlayTests
 
         Assert.That(maximumPumpTravel, Is.GreaterThan(0.055f));
         Assert.That(maximumWeaponLift, Is.GreaterThan(0.25f));
-        Assert.That(maximumCarrierTravel, Is.GreaterThan(0.55f));
-        Assert.That(reachedPresentation, Is.True, "The skeleton never presented the tray beside the player.");
+        Assert.That(maximumCarrierTravel, Is.LessThan(0.002f), "The presenter should wait at the side.");
+        Assert.That(maximumCameraTurn, Is.GreaterThan(20f));
+        Assert.That(reachedSideView, Is.True, "The player's view never turned toward the shell tray.");
+        Assert.That(sawShellCount, Is.True, "The six-shell count was never shown.");
         Assert.That(bothHandsGrippedWeapon, Is.True);
         Assert.That(pumpCycles, Is.EqualTo(6), "The shotgun must be racked once for each visible shell.");
         Assert.That(shellLeftTray, Is.False, "A shell was attached to a hand instead of remaining on the tray.");
@@ -179,7 +185,8 @@ public sealed class ChamberScenePlayTests
 
         Assert.That(FindShells(), Has.All.Matches<Transform>(shell => !shell.gameObject.activeSelf));
         Assert.That(carrier.gameObject.activeSelf, Is.False);
-        Assert.That(Vector3.Distance(carrier.position, exitAnchor.position), Is.LessThan(0.002f));
+        Assert.That(Vector3.Distance(carrier.localPosition, carrierRestPosition), Is.LessThan(0.002f));
+        Assert.That(Quaternion.Angle(cameraRestRotation, camera.localRotation), Is.LessThan(1f));
         Assert.That(Vector3.Distance(pumpRestPosition, pump.localPosition), Is.LessThan(0.002f));
         Assert.That(Vector3.Distance(weaponRestPosition, weapon.position), Is.LessThan(0.005f));
         Assert.That(Quaternion.Angle(weaponRestRotation, weapon.rotation), Is.LessThan(1f));
