@@ -18,11 +18,17 @@ public sealed class ChamberLogicGame : MonoBehaviour
     [SerializeField] private Transform dealerSelfLeftGrip;
     [SerializeField] private Transform weaponTableAnchor;
     [SerializeField] private Transform openingLoadAnchor;
+    [SerializeField] private Transform shellTray;
+    [SerializeField] private Transform trayCarrier;
+    [SerializeField] private Transform trayCarrierPresentationAnchor;
+    [SerializeField] private Transform trayCarrierExitAnchor;
+    [SerializeField] private Transform shellRevealCameraAnchor;
+    [SerializeField] private Transform gunChargeCameraAnchor;
+    [SerializeField] private Transform openingPumpHandGrip;
     [SerializeField] private Transform playerAimDealerAnchor;
     [SerializeField] private Transform playerAimSelfAnchor;
     [SerializeField] private Transform dealerAimPlayerAnchor;
     [SerializeField] private Transform dealerAimSelfAnchor;
-    [SerializeField] private Transform weaponBreechAnchor;
     [SerializeField] private Transform weaponPump;
     [SerializeField] private Transform duelCamera;
     [SerializeField] private Light muzzleFlash;
@@ -70,6 +76,9 @@ public sealed class ChamberLogicGame : MonoBehaviour
     private bool lastDealerHitWasSelfInflicted;
     private Vector3 pumpRestPosition;
     private Quaternion pumpRestRotation;
+    private Transform trayCarrierRestParent;
+    private Vector3 trayCarrierRestPosition;
+    private Quaternion trayCarrierRestRotation;
     private HandPoseRig rightHandRig;
     private HandPoseRig leftHandRig;
 
@@ -109,12 +118,15 @@ public sealed class ChamberLogicGame : MonoBehaviour
     {
         if (duelCamera == null || playerWeapon == null || dealerEntity == null || dealerRightHand == null || dealerLeftHand == null ||
             dealerRightGrip == null || dealerLeftGrip == null || dealerSelfRightGrip == null || dealerSelfLeftGrip == null ||
-            weaponTableAnchor == null || openingLoadAnchor == null || playerAimDealerAnchor == null || playerAimSelfAnchor == null ||
-            dealerAimPlayerAnchor == null || dealerAimSelfAnchor == null || weaponBreechAnchor == null || weaponPump == null ||
+            weaponTableAnchor == null || openingLoadAnchor == null || shellTray == null || trayCarrier == null ||
+            trayCarrierPresentationAnchor == null || trayCarrierExitAnchor == null || shellRevealCameraAnchor == null ||
+            gunChargeCameraAnchor == null || openingPumpHandGrip == null ||
+            playerAimDealerAnchor == null || playerAimSelfAnchor == null ||
+            dealerAimPlayerAnchor == null || dealerAimSelfAnchor == null || weaponPump == null ||
             audioSource == null || mechanicalSource == null || musicSource == null || musicLayerSource == null ||
             dollMusicSource == null || dollVoiceSource == null || horrorMusicClip == null || horrorMusicLayerClip == null ||
             dollMusicClip == null || dollVoiceClip == null || dollFallClip == null || liveShotClip == null ||
-            blankClickClip == null || shellLoadClip == null)
+            blankClickClip == null || shellLoadClip == null || shellProps.Count != 6)
         {
             Debug.LogError("Chamber scene references are incomplete. The saved Chamber scene needs repair.");
             enabled = false;
@@ -142,8 +154,17 @@ public sealed class ChamberLogicGame : MonoBehaviour
         }
         pumpRestPosition = weaponPump.localPosition;
         pumpRestRotation = weaponPump.localRotation;
+        trayCarrierRestParent = trayCarrier.parent;
+        trayCarrierRestPosition = trayCarrier.localPosition;
+        trayCarrierRestRotation = trayCarrier.localRotation;
         foreach (var shell in shellProps)
         {
+            if (shell == null)
+            {
+                Debug.LogError("The tray carrier needs exactly six assigned shell props.");
+                enabled = false;
+                return;
+            }
             shellRestParents.Add(shell.transform.parent);
             shellRestPositions.Add(shell.transform.localPosition);
             shellRestRotations.Add(shell.transform.localRotation);
@@ -171,7 +192,7 @@ public sealed class ChamberLogicGame : MonoBehaviour
         {
             var unstable = Mathf.PerlinNoise(time * 7.5f, 0.37f);
             var dropout = Mathf.PerlinNoise(time * 1.3f, 4.1f) > 0.91f ? 0.22f : 1f;
-            overheadLight.intensity = (2.35f + unstable * 1.1f) * Mathf.Max(dropout, 0.55f);
+            overheadLight.intensity = (3.0f + unstable * 1.25f) * Mathf.Max(dropout, 0.68f);
         }
         if (dealerRimLight != null) dealerRimLight.intensity = 3.35f + Mathf.Sin(time * 0.72f) * 0.5f;
 
@@ -206,6 +227,10 @@ public sealed class ChamberLogicGame : MonoBehaviour
         SetWeaponAt(weaponTableAnchor);
         weaponPump.localPosition = pumpRestPosition;
         weaponPump.localRotation = pumpRestRotation;
+        trayCarrier.gameObject.SetActive(true);
+        trayCarrier.SetParent(trayCarrierRestParent, false);
+        trayCarrier.localPosition = trayCarrierRestPosition;
+        trayCarrier.localRotation = trayCarrierRestRotation;
         ResetShellReveal();
         StartCoroutine(OpeningSequence());
     }
@@ -216,15 +241,12 @@ public sealed class ChamberLogicGame : MonoBehaviour
         if (roundRevealText != null)
         {
             roundRevealText.gameObject.SetActive(true);
-            roundRevealText.text = "THE HOUSE LOADS SIX SHELLS";
+            roundRevealText.text = "SOMETHING APPROACHES";
             roundRevealText.color = new Color(0.78f, 0.82f, 0.78f, 1f);
         }
 
-        yield return new WaitForSeconds(1.35f);
-
-        var closePosition = new Vector3(-0.48f, 1.36f, -0.92f);
-        var closeRotation = Quaternion.LookRotation(new Vector3(-0.58f, 0.86f, 0.02f) - closePosition);
-        yield return MoveCamera(cameraRestPosition, cameraRestRotation, closePosition, closeRotation, 1f);
+        yield return new WaitForSeconds(0.45f);
+        yield return MoveTrayCarrier(trayCarrierPresentationAnchor, 1.3f);
 
         if (roundRevealText != null)
         {
@@ -232,31 +254,38 @@ public sealed class ChamberLogicGame : MonoBehaviour
             roundRevealText.color = new Color(0.95f, 0.67f, 0.42f, 1f);
         }
         Debug.Log("[Chamber] Loading reveal: 2 live shells and 4 blank shells. Their order is hidden.");
-        yield return new WaitForSeconds(1.8f);
+        var revealPosition = shellRevealCameraAnchor.localPosition;
+        var revealRotation = shellRevealCameraAnchor.localRotation;
+        yield return MoveCamera(cameraRestPosition, cameraRestRotation, revealPosition, revealRotation, 0.72f);
+        yield return new WaitForSeconds(1.6f);
 
-        // The doll visibly takes control of the weapon before loading it. The
-        // left hand remains on the fore grip while the right hand handles shells.
+        if (roundRevealText != null) roundRevealText.text = "THE OFFER IS WITHDRAWN";
+        yield return MoveTrayCarrier(trayCarrierExitAnchor, 1f);
+        foreach (var shell in shellProps) shell.SetActive(false);
+        trayCarrier.gameObject.SetActive(false);
+
+        var chargePosition = gunChargeCameraAnchor.localPosition;
+        var chargeRotation = gunChargeCameraAnchor.localRotation;
+        yield return MoveCamera(revealPosition, revealRotation, chargePosition, chargeRotation, 0.65f);
         yield return MoveDealerHandsToWeapon(false, 0.55f);
         yield return MoveWeapon(openingLoadAnchor, 0.68f);
-        yield return new WaitForSeconds(0.12f);
-        yield return OpenWeaponAction(0.62f);
-        yield return new WaitForSeconds(0.18f);
+        AttachHand(dealerLeftHand, openingPumpHandGrip);
+        yield return new WaitForSeconds(0.15f);
 
         for (var i = 0; i < shellProps.Count; i++)
         {
-            var shell = shellProps[i];
-            if (shell == null) continue;
-            yield return LoadShellByHand(shell, i);
+            if (roundRevealText != null) roundRevealText.text = $"CHARGING {i + 1} / {shellProps.Count}";
+            yield return PumpWeapon(0.38f);
+            yield return new WaitForSeconds(0.08f);
         }
 
-        yield return MoveHandToGrip(dealerRightHand, dealerRightGrip, 0.34f, 0.68f);
-        yield return CloseWeaponAction(0.58f);
+        yield return new WaitForSeconds(0.35f);
         yield return MoveWeapon(weaponTableAnchor, 0.72f);
         yield return ReturnDealerHands(0.42f);
 
-        if (roundRevealText != null) roundRevealText.text = "REMEMBER THE MIX\nP(LIVE NEXT) = 2 / 6";
+        yield return MoveCamera(chargePosition, chargeRotation, cameraRestPosition, cameraRestRotation, 0.9f);
+        if (roundRevealText != null) roundRevealText.text = "SIX CHARGES COMPLETE\nP(LIVE NEXT) = 2 / 6";
         yield return new WaitForSeconds(2.2f);
-        yield return MoveCamera(closePosition, closeRotation, cameraRestPosition, cameraRestRotation, 0.9f);
         CompleteOpening();
     }
 
@@ -283,6 +312,24 @@ public sealed class ChamberLogicGame : MonoBehaviour
         }
         duelCamera.localPosition = toPosition;
         duelCamera.localRotation = toRotation;
+    }
+
+    private IEnumerator MoveTrayCarrier(Transform destination, float duration)
+    {
+        var startPosition = trayCarrier.position;
+        var startRotation = trayCarrier.rotation;
+        mechanicalSource.PlayOneShot(shellLoadClip, 0.62f);
+        for (var t = 0f; t < duration; t += Time.deltaTime)
+        {
+            var progress = Mathf.SmoothStep(0f, 1f, t / duration);
+            var spectralBob = Mathf.Sin(progress * Mathf.PI * 3f) * 0.018f;
+            trayCarrier.position = Vector3.Lerp(startPosition, destination.position, progress) + Vector3.up * spectralBob;
+            trayCarrier.rotation = Quaternion.Slerp(startRotation, destination.rotation, progress);
+            yield return null;
+        }
+        trayCarrier.position = destination.position;
+        trayCarrier.rotation = destination.rotation;
+        mechanicalSource.PlayOneShot(shellLoadClip, 0.42f);
     }
 
     private void ResetShellReveal()
@@ -483,34 +530,6 @@ public sealed class ChamberLogicGame : MonoBehaviour
         weaponPump.localRotation = pumpRestRotation;
     }
 
-    private IEnumerator OpenWeaponAction(float duration)
-    {
-        mechanicalSource.PlayOneShot(shellLoadClip, 0.76f);
-        yield return MoveWeaponAction(pumpRestPosition, pumpRestRotation,
-            pumpRestPosition + Vector3.back * 0.075f,
-            pumpRestRotation * Quaternion.Euler(2.5f, 0f, 0f), duration);
-    }
-
-    private IEnumerator CloseWeaponAction(float duration)
-    {
-        mechanicalSource.PlayOneShot(shellLoadClip, 0.82f);
-        yield return MoveWeaponAction(weaponPump.localPosition, weaponPump.localRotation,
-            pumpRestPosition, pumpRestRotation, duration);
-    }
-
-    private IEnumerator MoveWeaponAction(Vector3 startPosition, Quaternion startRotation, Vector3 endPosition, Quaternion endRotation, float duration)
-    {
-        for (var t = 0f; t < duration; t += Time.deltaTime)
-        {
-            var progress = Mathf.SmoothStep(0f, 1f, t / duration);
-            weaponPump.localPosition = Vector3.Lerp(startPosition, endPosition, progress);
-            weaponPump.localRotation = Quaternion.Slerp(startRotation, endRotation, progress);
-            yield return null;
-        }
-        weaponPump.localPosition = endPosition;
-        weaponPump.localRotation = endRotation;
-    }
-
     private IEnumerator DealerHitReaction(bool selfInflicted)
     {
         dollVoiceSource.pitch = selfInflicted ? 0.82f : 0.72f;
@@ -586,94 +605,6 @@ public sealed class ChamberLogicGame : MonoBehaviour
         SetHandPose(dealerLeftHand, 1f, false);
     }
 
-    private IEnumerator LoadShellByHand(GameObject shell, int shellIndex)
-    {
-        var shellTransform = shell.transform;
-        var shellRenderer = shell.GetComponentInChildren<Renderer>();
-        var handRenderer = dealerRightHand.GetComponentInChildren<Renderer>();
-        var handVisualOffset = handRenderer.bounds.center - dealerRightHand.position;
-        var shellCenter = shellRenderer.bounds.center;
-        var pickupPosition = shellCenter + Vector3.right * 0.032f + Vector3.up * 0.006f - handVisualOffset;
-        var pickupRotation = rightHandRestParent.rotation * rightHandRestRotation * Quaternion.Euler(0f, 0f, -12f);
-
-        var startingCurl = shellIndex == 0 ? 1f : 0.68f;
-        yield return MoveHandWorldWithPose(dealerRightHand, pickupPosition, pickupRotation, 0.34f, 0.035f,
-            startingCurl, 0.08f, true);
-        yield return AnimateHandPose(dealerRightHand, 0.08f, 0.72f, true, 0.22f);
-        // The fingers visibly close while the shell is still on its stand.
-        // Only after this hold does the shell become a child of the hand.
-        yield return new WaitForSeconds(0.12f);
-
-        shellTransform.SetParent(dealerRightHand, true);
-        var shellLocalPosition = shellTransform.localPosition;
-        var shellLocalRotation = shellTransform.localRotation;
-        var approach = weaponBreechAnchor.position - weaponBreechAnchor.forward * 0.105f;
-        GetHandPoseForShell(shellLocalPosition, shellLocalRotation, approach, weaponBreechAnchor.rotation,
-            out var approachHandPosition, out var approachHandRotation);
-        yield return MoveHandWorld(dealerRightHand, approachHandPosition, approachHandRotation, 0.48f, 0.055f);
-
-        mechanicalSource.PlayOneShot(shellLoadClip, 0.52f);
-        GetHandPoseForShell(shellLocalPosition, shellLocalRotation, weaponBreechAnchor.position, weaponBreechAnchor.rotation,
-            out var insertHandPosition, out var insertHandRotation);
-        yield return MoveHandWorld(dealerRightHand, insertHandPosition, insertHandRotation, 0.28f, 0f);
-
-        if (shellIndex < shellRestParents.Count) shellTransform.SetParent(shellRestParents[shellIndex], true);
-        shell.SetActive(false);
-        yield return new WaitForSeconds(0.08f);
-    }
-
-    private IEnumerator MoveHandToGrip(Transform hand, Transform grip, float duration, float startingCurl)
-    {
-        yield return MoveHandWorldWithPose(hand, grip.position, grip.rotation, duration, 0.03f,
-            startingCurl, 1f, false);
-        AttachHand(hand, grip);
-        SetHandPose(hand, 1f, false);
-    }
-
-    private void GetHandPoseForShell(Vector3 shellLocalPosition, Quaternion shellLocalRotation,
-        Vector3 desiredShellPosition, Quaternion desiredShellRotation,
-        out Vector3 handPosition, out Quaternion handRotation)
-    {
-        handRotation = desiredShellRotation * Quaternion.Inverse(shellLocalRotation);
-        var scaledLocalPosition = Vector3.Scale(shellLocalPosition, dealerRightHand.lossyScale);
-        handPosition = desiredShellPosition - handRotation * scaledLocalPosition;
-    }
-
-    private static IEnumerator MoveHandWorld(Transform hand, Vector3 targetPosition, Quaternion targetRotation, float duration, float lift)
-    {
-        var startPosition = hand.position;
-        var startRotation = hand.rotation;
-        hand.SetParent(null, true);
-        for (var t = 0f; t < duration; t += Time.deltaTime)
-        {
-            var progress = Mathf.SmoothStep(0f, 1f, t / duration);
-            hand.position = Vector3.Lerp(startPosition, targetPosition, progress) + Vector3.up * (Mathf.Sin(progress * Mathf.PI) * lift);
-            hand.rotation = Quaternion.Slerp(startRotation, targetRotation, progress);
-            yield return null;
-        }
-        hand.position = targetPosition;
-        hand.rotation = targetRotation;
-    }
-
-    private IEnumerator MoveHandWorldWithPose(Transform hand, Vector3 targetPosition, Quaternion targetRotation,
-        float duration, float lift, float fromCurl, float toCurl, bool pinch)
-    {
-        var startPosition = hand.position;
-        var startRotation = hand.rotation;
-        hand.SetParent(null, true);
-        for (var t = 0f; t < duration; t += Time.deltaTime)
-        {
-            var progress = Mathf.SmoothStep(0f, 1f, t / duration);
-            hand.position = Vector3.Lerp(startPosition, targetPosition, progress) + Vector3.up * (Mathf.Sin(progress * Mathf.PI) * lift);
-            hand.rotation = Quaternion.Slerp(startRotation, targetRotation, progress);
-            SetHandPose(hand, Mathf.Lerp(fromCurl, toCurl, progress), pinch);
-            yield return null;
-        }
-        hand.position = targetPosition;
-        hand.rotation = targetRotation;
-        SetHandPose(hand, toCurl, pinch);
-    }
-
     private IEnumerator ReturnDealerHands(float duration)
     {
         var rightStartPosition = dealerRightHand.position;
@@ -718,17 +649,6 @@ public sealed class ChamberLogicGame : MonoBehaviour
         dealerLeftHand.localRotation = leftHandRestRotation;
         SetHandPose(dealerRightHand, 0f, false);
         SetHandPose(dealerLeftHand, 0f, false);
-    }
-
-    private IEnumerator AnimateHandPose(Transform hand, float fromCurl, float toCurl, bool pinch, float duration)
-    {
-        for (var t = 0f; t < duration; t += Time.deltaTime)
-        {
-            var progress = Mathf.SmoothStep(0f, 1f, t / duration);
-            SetHandPose(hand, Mathf.Lerp(fromCurl, toCurl, progress), pinch);
-            yield return null;
-        }
-        SetHandPose(hand, toCurl, pinch);
     }
 
     private void SetHandPose(Transform hand, float curl, bool pinch)
