@@ -80,6 +80,11 @@ namespace BeforeTheAxes
         public float TreeStamina => treeStamina;
         public float MaxTreeStamina => treeMaxStamina;
         public bool CanTransformTree => canTransformTree;
+        /// <summary>Raised immediately before a deliberate human-to-tree visual swap. This is
+        /// intentionally separate from <see cref="TreeFormChanged"/> so short confirmation cues
+        /// can begin before the tree appears, rather than lag behind it.</summary>
+        public event Action TreeFormEntering;
+
         /// <summary>Raised immediately after the player changes form. Observers can retain sight
         /// when a tree was entered in plain view instead of treating it as instant invisibility.</summary>
         public event Action<bool> TreeFormChanged;
@@ -203,6 +208,9 @@ namespace BeforeTheAxes
 
         private void SetTreeForm(bool treeForm)
         {
+            // Start the deliberate entry cue before hiding the human / showing the tree. Exits,
+            // including stamina-forced exits, never invoke this event.
+            if (treeForm && !IsTreeForm) TreeFormEntering?.Invoke();
             IsTreeForm = treeForm;
             IsCrouching = false;
             if (crouchPose != null) crouchPose.SetCrouching(false);

@@ -20,19 +20,19 @@ namespace BeforeTheAxes
         private void OnEnable()
         {
             if (guardian == null) guardian = GetComponent<ForestGuardianController>();
-            if (guardian != null) guardian.TreeFormChanged += OnTreeFormChanged;
+            if (guardian != null) guardian.TreeFormEntering += PlayTreeEntrySound;
         }
 
         private void OnDisable()
         {
-            if (guardian != null) guardian.TreeFormChanged -= OnTreeFormChanged;
+            if (guardian != null) guardian.TreeFormEntering -= PlayTreeEntrySound;
         }
 
-        private void OnTreeFormChanged(bool isTreeForm)
+        private void PlayTreeEntrySound()
         {
-            // Entering tree form is the player's deliberate transformation. Returning to human
-            // form and stamina-forced exits stay quiet, so this cannot become a repetitive cue.
-            if (!isTreeForm || transformSound == null || uiSoundSource == null) return;
+            // This event is only emitted for a successful human-to-tree entry, before the visual
+            // swap. Returning to human form and stamina-forced exits stay quiet.
+            if (transformSound == null || uiSoundSource == null) return;
             uiSoundSource.PlayOneShot(transformSound, volume);
         }
     }
