@@ -47,7 +47,7 @@ namespace BeforeTheAxes
 
         public static string WarningTextForCount(int count)
         {
-            return count <= 1 ? "YOU ARE BEING CHASED" : $"YOU ARE BEING CHASED — {count} WOODCUTTERS";
+            return "CHASED";
         }
 
         private void EnsureStyles()
