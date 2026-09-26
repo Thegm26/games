@@ -7,6 +7,7 @@ namespace BeforeTheAxes
     public sealed class VillageExit : MonoBehaviour
     {
         [SerializeField] private RootMushroomPickup mushroom;
+        [SerializeField] private VillageArrivalEffect arrivalEffect;
 
         private bool objectiveCollected;
         private bool won;
@@ -22,6 +23,10 @@ namespace BeforeTheAxes
         {
             BoxCollider trigger = GetComponent<BoxCollider>();
             trigger.isTrigger = true;
+            if (arrivalEffect == null)
+                arrivalEffect = GetComponent<VillageArrivalEffect>();
+            if (arrivalEffect == null)
+                arrivalEffect = gameObject.AddComponent<VillageArrivalEffect>();
             FindMushroom();
         }
 
@@ -61,6 +66,7 @@ namespace BeforeTheAxes
 
             won = true;
             wonAt = Time.unscaledTime;
+            arrivalEffect?.Play(guardian.transform.position);
             guardian.enabled = false;
             CharacterController characterController = guardian.GetComponent<CharacterController>();
             if (characterController != null) characterController.enabled = false;

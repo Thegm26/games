@@ -10,6 +10,10 @@ namespace BeforeTheAxes
         [SerializeField] private float turnDegreesPerSecond = 120f;
         [SerializeField] private float bobHeight = .09f;
         [SerializeField] private float bobCyclesPerSecond = .85f;
+        [Header("Audio")]
+        [SerializeField] private AudioClip pickupSound;
+        [SerializeField, Range(0f, 1f)] private float pickupSoundVolume = .72f;
+        [SerializeField] private AudioSource uiSoundSource;
 
         private ForestGuardianController player;
         private Vector3 restingPosition;
@@ -50,6 +54,8 @@ namespace BeforeTheAxes
         {
             if (collected) return;
             collected = true;
+            if (pickupSound != null && uiSoundSource != null)
+                uiSoundSource.PlayOneShot(pickupSound, pickupSoundVolume);
             Collected?.Invoke(this);
             gameObject.SetActive(false);
         }

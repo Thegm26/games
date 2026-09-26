@@ -3,17 +3,23 @@ using UnityEngine;
 namespace BeforeTheAxes
 {
     /// <summary>
-    /// Top-centre warning shown only while at least one woodcutter is actively chasing with
-    /// a direct, unobstructed line of sight. Search and patrol are deliberately silent.
+    /// A quiet, screen-edge danger cue shown only while a woodcutter has direct sight and is chasing.
+    /// It intentionally has no text or centre fill so the player can keep reading the forest.
     /// </summary>
     public sealed class ChaseWarningUI : MonoBehaviour
     {
-        private GUIStyle warningStyle;
-        private GUIStyle countStyle;
+        private const float MinimumEdgePixels = 5f;
+        private const float MaximumEdgePixels = 15f;
+        private const float PulseSpeed = 5.5f;
+        private const float MinimumAlpha = .13f;
+        private const float MaximumAlpha = .31f;
+
         private int activeChaserCount;
 
         public bool IsWarningVisible => activeChaserCount > 0;
         public int ActiveChaserCount => activeChaserCount;
+        public float CurrentOutlineAlpha { get; private set; }
+        public float CurrentOutlineThickness { get; private set; }
 
         private void Update()
         {
@@ -26,47 +32,49 @@ namespace BeforeTheAxes
                     count++;
             }
             activeChaserCount = count;
+            float pulse = (Mathf.Sin(Time.unscaledTime * PulseSpeed) + 1f) * .5f;
+            CurrentOutlineAlpha = Mathf.Lerp(MinimumAlpha, MaximumAlpha, pulse);
+            CurrentOutlineThickness = CalculateOutlineThickness(Screen.width, Screen.height);
         }
 
         private void OnGUI()
         {
-            if (!IsWarningVisible) return;
-            EnsureStyles();
+            if (!IsWarningVisible || Event.current.type != EventType.Repaint)
+                return;
 
-            const float width = 280f;
-            const float height = 38f;
-            Rect panel = new Rect((Screen.width - width) * .5f, 14f, width, height);
-            GUI.color = new Color(.16f, .025f, .015f, .92f);
-            GUI.DrawTexture(panel, Texture2D.whiteTexture);
-            GUI.color = new Color(1f, .24f, .08f, 1f);
-            GUI.DrawTexture(new Rect(panel.x, panel.y, 3f, panel.height), Texture2D.whiteTexture);
-            GUI.color = Color.white;
-            GUI.Label(panel, WarningTextForCount(activeChaserCount), warningStyle);
-            GUI.Label(new Rect(panel.x + 8f, panel.y + 22f, panel.width - 16f, 12f), "BREAK LINE OF SIGHT", countStyle);
+            float thickness = CurrentOutlineThickness;
+            float cornerLength = Mathf.Max(thickness * 3.5f, 26f);
+            float width = Screen.width;
+            float height = Screen.height;
+
+            // Four restrained corner brackets sell danger without masking the low-poly world.
+            Color previousColor = GUI.color;
+            GUI.color = new Color(.93f, .075f, .035f, CurrentOutlineAlpha);
+
+            DrawCorner(0f, 0f, 1f, 1f, cornerLength, thickness);
+            DrawCorner(width, 0f, -1f, 1f, cornerLength, thickness);
+            DrawCorner(0f, height, 1f, -1f, cornerLength, thickness);
+            DrawCorner(width, height, -1f, -1f, cornerLength, thickness);
+
+            GUI.color = previousColor;
         }
 
-        public static string WarningTextForCount(int count)
+        private static void DrawCorner(float x, float y, float horizontalDirection, float verticalDirection,
+            float length, float thickness)
         {
-            return "CHASED";
+            float horizontalX = horizontalDirection > 0f ? x : x - length;
+            float verticalY = verticalDirection > 0f ? y : y - length;
+            float horizontalY = verticalDirection > 0f ? y : y - thickness;
+            float verticalX = horizontalDirection > 0f ? x : x - thickness;
+
+            GUI.DrawTexture(new Rect(horizontalX, horizontalY, length, thickness), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(verticalX, verticalY, thickness, length), Texture2D.whiteTexture);
         }
 
-        private void EnsureStyles()
+        public static float CalculateOutlineThickness(float screenWidth, float screenHeight)
         {
-            if (warningStyle != null) return;
-            warningStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 14,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.UpperCenter,
-                normal = { textColor = new Color(1f, .78f, .65f, 1f) }
-            };
-            countStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 9,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.UpperCenter,
-                normal = { textColor = new Color(1f, .7f, .45f, 1f) }
-            };
+            float shortestScreenEdge = Mathf.Max(1f, Mathf.Min(screenWidth, screenHeight));
+            return Mathf.Clamp(shortestScreenEdge * .009f, MinimumEdgePixels, MaximumEdgePixels);
         }
     }
 }
