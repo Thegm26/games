@@ -30,8 +30,8 @@ namespace BeforeTheAxes
         [SerializeField] private float searchDuration = 4f;
         [SerializeField] private float catchDistance = 1.2f;
         [Header("Tree disguise")]
-        [Tooltip("A visible tree moving at or above this actual world speed gives itself away. Tuned between the guardian walk (1.1) and run (2.7) speeds.")]
-        [SerializeField, Min(.1f)] private float treeRevealRunSpeed = 2.1f;
+        [Tooltip("A visible tree moving at ordinary walking speed gives itself away. This uses actual world speed, so stationary trees and tiny collision jitter remain safe.")]
+        [SerializeField, Min(.1f)] private float treeRevealRunSpeed = .75f;
         [Header("Obstacle avoidance")]
         [SerializeField, Min(.1f)] private float obstacleProbeRadius = .23f;
         [SerializeField, Min(.2f)] private float obstacleProbeDistance = 1.2f;
@@ -156,7 +156,7 @@ namespace BeforeTheAxes
                 lastLoggedGeometryVisible = geometryVisible;
             }
             // A still (or slowly rolling) disguised tree is ignored. It becomes suspicious only
-            // when it moves at a human running pace in a physically unobstructed view. A tree
+            // when it moves at a real walking pace in a physically unobstructed view. A tree
             // entered directly in view remains known, as before.
             IsTreeMovementRevealing = player.IsTreeForm && player.HorizontalWorldSpeed >= treeRevealRunSpeed;
             HasDirectSight = !player.IsTreeForm

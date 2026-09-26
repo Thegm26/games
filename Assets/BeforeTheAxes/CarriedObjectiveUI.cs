@@ -41,7 +41,7 @@ namespace BeforeTheAxes
             GUI.color = new Color(.22f, .55f, .95f, 1f);
             GUI.DrawTexture(new Rect(panel.x + 10f, panel.y + 10f, 32f, 32f), fillTexture);
             GUI.color = Color.white;
-            GUI.Label(new Rect(panel.x + 52f, panel.y + 4f, 116f, 44f), "ROOT MUSHROOM\nCARRIED", labelStyle);
+            GUI.Label(new Rect(panel.x + 52f, panel.y + 4f, 116f, 44f), "RETURN TO\nTHE VILLAGE", labelStyle);
         }
 
         private void EnsureStyle()
