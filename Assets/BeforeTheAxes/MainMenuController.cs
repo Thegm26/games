@@ -17,11 +17,19 @@ namespace BeforeTheAxes
         private static Texture2D hoverTexture;
         private static Texture2D pressedTexture;
         private MenuPage page;
+        private float menuOpenedAt;
+
+        public float EntranceOffsetX { get; private set; }
+        public float FloatingOffsetY { get; private set; }
 
         public MenuPage ActivePage => page;
         public bool HasClickSound => uiAudioSource != null && clickSound != null;
 
-        private void Awake() => page = MenuPage.Main;
+        private void Awake()
+        {
+            page = MenuPage.Main;
+            menuOpenedAt = Time.unscaledTime;
+        }
 
         private void Update()
         {
@@ -68,7 +76,11 @@ namespace BeforeTheAxes
 
         private void DrawMain(float width, float height)
         {
-            Rect panel = new Rect(74f, (height - 640f) * .5f, 478f, 640f);
+            float menuTime = Time.unscaledTime - menuOpenedAt;
+            Vector2 offsets = GetMainVisualOffsets(menuTime);
+            EntranceOffsetX = offsets.x;
+            FloatingOffsetY = offsets.y;
+            Rect panel = new Rect(74f + EntranceOffsetX, (height - 640f) * .5f + FloatingOffsetY, 478f, 640f);
             DrawPanel(panel, new Color(.025f, .10f, .06f, .90f));
             GUI.Label(new Rect(panel.x + 36f, panel.y + 50f, 400f, 65f), "BEFORE", TitleStyle(52, new Color(.94f, .82f, .49f)));
             GUI.Label(new Rect(panel.x + 34f, panel.y + 112f, 410f, 85f), "THE AXES", TitleStyle(72, new Color(.98f, .92f, .74f)));
@@ -80,6 +92,12 @@ namespace BeforeTheAxes
             if (DrawButton(new Rect(panel.x + 36f, panel.y + 393f, 386f, 58f), "HELP")) ShowHelp();
             if (DrawButton(new Rect(panel.x + 36f, panel.y + 471f, 386f, 58f), "CREDITS")) ShowCredits();
             GUI.Label(new Rect(panel.x + 37f, panel.y + 558f, 385f, 28f), "THE ROOTS REMEMBER", LabelStyle(13, FontStyle.Italic, new Color(.63f, .72f, .58f), TextAnchor.MiddleLeft));
+        }
+
+        public static Vector2 GetMainVisualOffsets(float elapsedSeconds)
+        {
+            float entered = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsedSeconds / .65f));
+            return new Vector2(Mathf.Lerp(-38f, 0f, entered), Mathf.Sin(elapsedSeconds * 1.08f) * 2.5f);
         }
 
         private void DrawOverlay(float width, float height)
