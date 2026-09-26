@@ -6088,6 +6088,7 @@ GameObject:
   - component: {fileID: 849475039}
   - component: {fileID: 849475041}
   - component: {fileID: 849475043}
+  - component: {fileID: 849475044}
   m_Layer: 0
   m_Name: Forest Guardian
   m_TagString: Untagged
@@ -6193,6 +6194,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ff6a49b8718bbe239825e9e64e87001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BeforeTheAxes.ChaseWarningUI
+--- !u!114 &849475044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 849475037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32c67fef072fb964d9b1210404b04357, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: Assembly-CSharp::BeforeTheAxes.TreeTransformSfx
+  uiSoundSource: {fileID: 1167975861}
+  transformSound: {fileID: 8300000, guid: e20ad1b48d59a7c609eedf9e4dbad485, type: 3}
+  volume: 0.5
 --- !u!1 &871029011
 GameObject:
   m_ObjectHideFlags: 0

@@ -66,3 +66,13 @@ The two scenes in `Assets/Scenes` use only the original raster artwork above.
 - Use in game: a 0.333-second, low-mid wooden thud used only for the caught state.
   It replaces the generic UI error beep to fit the stylized woodland woodcutters.
   The source clip is unmodified and human-made, not generative-AI content.
+
+## Tree transformation sound
+
+- File: `Assets/BeforeTheAxes/Audio/tree_transform_leaf_rustle_003.ogg`.
+- Source: [Kenney RPG Audio](https://kenney.nl/assets/rpg-audio),
+  `Audio/cloth3.ogg` from the original archive `kenney_rpg-audio.zip`; Kenney Vleugels / Kenney.nl.
+- License: [Creative Commons Zero 1.0 (CC0)](https://creativecommons.org/publicdomain/zero/1.0/).
+- Use in game: the unmodified 0.477-second, soft cloth-and-leaf-like rustle plays once when the
+  guardian successfully enters tree form. It is a low-intensity physical woodland cue, not a UI
+  beep or an AI-generated asset.
