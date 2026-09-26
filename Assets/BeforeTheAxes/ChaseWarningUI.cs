@@ -33,16 +33,16 @@ namespace BeforeTheAxes
             if (!IsWarningVisible) return;
             EnsureStyles();
 
-            const float width = 390f;
-            const float height = 50f;
-            Rect panel = new Rect((Screen.width - width) * .5f, 22f, width, height);
+            const float width = 280f;
+            const float height = 38f;
+            Rect panel = new Rect((Screen.width - width) * .5f, 14f, width, height);
             GUI.color = new Color(.16f, .025f, .015f, .92f);
             GUI.DrawTexture(panel, Texture2D.whiteTexture);
             GUI.color = new Color(1f, .24f, .08f, 1f);
-            GUI.DrawTexture(new Rect(panel.x, panel.y, 5f, panel.height), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(panel.x, panel.y, 3f, panel.height), Texture2D.whiteTexture);
             GUI.color = Color.white;
             GUI.Label(panel, WarningTextForCount(activeChaserCount), warningStyle);
-            GUI.Label(new Rect(panel.x + 12f, panel.y + 30f, panel.width - 24f, 16f), "BREAK LINE OF SIGHT", countStyle);
+            GUI.Label(new Rect(panel.x + 8f, panel.y + 22f, panel.width - 16f, 12f), "BREAK LINE OF SIGHT", countStyle);
         }
 
         public static string WarningTextForCount(int count)
@@ -55,14 +55,14 @@ namespace BeforeTheAxes
             if (warningStyle != null) return;
             warningStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 20,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.UpperCenter,
                 normal = { textColor = new Color(1f, .78f, .65f, 1f) }
             };
             countStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 9,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.UpperCenter,
                 normal = { textColor = new Color(1f, .7f, .45f, 1f) }
