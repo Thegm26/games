@@ -1,0 +1,8 @@
+# Generated game output
+dist/*.html
+.tools/
+
+# Local editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
