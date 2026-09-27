@@ -16,7 +16,9 @@ namespace BeforeTheAxes
         private readonly Dictionary<HumanBodyBones, Quaternion> baseRotations = new Dictionary<HumanBodyBones, Quaternion>();
         private Animator animator;
         private Transform hips;
+        private Transform visualRoot;
         private Vector3 hipsBasePosition;
+        private Vector3 visualRootBaseScale;
         private Transform leftFoot;
         private Transform rightFoot;
         private Vector3 leftFootBaseRootPosition;
@@ -55,6 +57,7 @@ namespace BeforeTheAxes
             blend = Mathf.MoveTowards(blend, target, deltaTime / Mathf.Max(0.01f, blendSeconds));
             if (blend <= 0f)
             {
+                if (visualRoot != null) visualRoot.localScale = visualRootBaseScale;
                 // Capture the current locomotion pose for the next crouch, after the Animator has
                 // returned the bones to its own animation.
                 CacheBasePose();
@@ -70,6 +73,8 @@ namespace BeforeTheAxes
             if (animator == null) animator = GetComponentInChildren<Animator>(true);
             if (animator == null || !animator.isHuman) return;
             hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+            visualRoot = animator.transform;
+            visualRootBaseScale = visualRoot.localScale;
             leftFoot = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
             rightFoot = animator.GetBoneTransform(HumanBodyBones.RightFoot);
             CacheBasePose();
@@ -127,6 +132,15 @@ namespace BeforeTheAxes
             // terrain or leave them visibly floating during the crouch transition.
             if (leftFoot != null) leftFoot.position = transform.TransformPoint(leftFootBaseRootPosition);
             if (rightFoot != null) rightFoot.position = transform.TransformPoint(rightFootBaseRootPosition);
+
+            // KayKit's compact proportions make a pelvis-only crouch nearly invisible from the
+            // third-person view. The visual root is at sole level, so a slight Y compression
+            // makes the low silhouette readable without changing physical movement or footing.
+            if (visualRoot != null)
+            {
+                float heightScale = Mathf.Lerp(1f, .78f, weight);
+                visualRoot.localScale = Vector3.Scale(visualRootBaseScale, new Vector3(1f, heightScale, 1f));
+            }
         }
 
         private void ApplyRotation(HumanBodyBones bone, Vector3 eulerOffset, float weight)
