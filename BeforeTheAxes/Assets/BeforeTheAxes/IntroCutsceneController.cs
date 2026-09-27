@@ -10,8 +10,6 @@ namespace BeforeTheAxes
         [SerializeField] private Camera cinematicCamera;
         [SerializeField] private Transform[] shotAnchors;
         [SerializeField] private AudioSource themeMusic;
-        [SerializeField] private AudioSource uiAudio;
-        [SerializeField] private AudioClip clickSound;
         [SerializeField, Range(.45f, .6f)] private float transitionDuration = .55f;
         [SerializeField, Range(15f, 80f)] private float charactersPerSecond = 38f;
 
@@ -110,7 +108,6 @@ namespace BeforeTheAxes
 
         private void Advance()
         {
-            PlayClick();
             if (shot >= captions.Length - 1) { BeginTransitionToGame(); return; }
             BeginShotTransition(shot + 1);
         }
@@ -438,11 +435,6 @@ namespace BeforeTheAxes
                 return p <= .5f ? p * 2f : (1f - p) * 2f;
             }
             return 1f - Mathf.Clamp01((Time.unscaledTime - initialFadeStarted) / (transitionDuration * .5f));
-        }
-
-        private void PlayClick()
-        {
-            if (uiAudio != null && clickSound != null) uiAudio.PlayOneShot(clickSound, .25f);
         }
 
         private static void EnsureTexture()

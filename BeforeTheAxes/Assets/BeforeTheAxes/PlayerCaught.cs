@@ -19,6 +19,7 @@ namespace BeforeTheAxes
         [SerializeField] private AudioSource uiSoundSource;
         [Header("Presentation")]
         [SerializeField, Min(.25f)] private float caughtScreenSeconds = 2.25f;
+        [SerializeField, Range(.35f, .6f)] private float caughtOverlayAlpha = .46f;
 
         public bool IsCaught { get; private set; }
         public bool IsGameplayFrozen { get; private set; }
@@ -88,7 +89,7 @@ namespace BeforeTheAxes
             if (!IsCaught || Event.current.type != EventType.Repaint) return;
 
             Color previousColor = GUI.color;
-            GUI.color = new Color(.025f, .055f, .035f, .82f);
+            GUI.color = new Color(.025f, .055f, .035f, caughtOverlayAlpha);
             GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
 
             float panelWidth = Mathf.Min(Screen.width * .78f, 760f);
