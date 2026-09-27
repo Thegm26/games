@@ -1,9 +1,0 @@
-[submodule "MusicRide"]
-	path = MusicRide
-	url = https://github.com/Thegm26/MusicRide.git
-[submodule "Conditional-Chamber"]
-	path = Conditional-Chamber
-	url = https://github.com/Thegm26/Conditional-Chamber.git
-[submodule "2-17am"]
-	path = 2-17am
-	url = https://github.com/Thegm26/2-17am.git
