@@ -7,20 +7,14 @@ namespace BeforeTheAxes
 {
     public readonly struct GuardianInputState
     {
-        public GuardianInputState(Vector2 move, bool running) : this(move, running, false)
-        {
-        }
-
-        public GuardianInputState(Vector2 move, bool running, bool crouching)
+        public GuardianInputState(Vector2 move, bool running)
         {
             Move = move;
             Running = running;
-            Crouching = crouching;
         }
 
         public Vector2 Move { get; }
         public bool Running { get; }
-        public bool Crouching { get; }
     }
 
     [RequireComponent(typeof(CharacterController))]
@@ -37,11 +31,7 @@ namespace BeforeTheAxes
         // Full-size ITHappy locomotion: deliberately conservative to match its short walk/run clips.
         [SerializeField] private float walkSpeed = 1.1f;
         [SerializeField] private float runSpeed = 2.7f;
-        [SerializeField] private float crouchSpeed = 0.6f;
         [SerializeField] private float turnSpeed = 12f;
-        [Header("Crouch")]
-        [SerializeField] private float crouchedControllerHeight = 1.25f;
-        [SerializeField] private float crouchTransitionSeconds = 0.12f;
         [Header("Run stamina")]
         [SerializeField] private float maxStamina = 4f;
         [SerializeField] private float staminaDrainPerSecond = 1f;
@@ -51,16 +41,12 @@ namespace BeforeTheAxes
 
         private CharacterController controller;
         private Animator animator;
-        private GuardianCrouchPose crouchPose;
         private float verticalVelocity;
         private float stamina;
         private float treeStamina;
         private bool canRun = true;
         private bool canTransformTree = true;
         private bool initialized;
-        private float standingControllerHeight;
-        private Vector3 standingControllerCenter;
-        private float crouchBlend;
 
         // Exposed for the runtime regression probe and for any future UI input.
         // This value is always sampled after CharacterController.Move.
@@ -72,12 +58,10 @@ namespace BeforeTheAxes
         /// <summary>True when the player is holding sprint with movement input and should use the
         /// run visual, even if stamina has forced the physical movement back to walking.</summary>
         public bool WantsRunAnimation { get; private set; }
-        public bool IsCrouching { get; private set; }
         public float CurrentMovementSpeed { get; private set; }
         /// <summary>Actual horizontal displacement per second after CharacterController physics.
         /// Unlike CurrentMovementSpeed, this is zero when movement is blocked or there is no input.</summary>
         public float HorizontalWorldSpeed { get; private set; }
-        public float CrouchBlend => crouchBlend;
         public bool IsExhausted => !canRun;
         public bool IsTreeForm { get; private set; }
         public float TreeStamina => treeStamina;
@@ -111,15 +95,10 @@ namespace BeforeTheAxes
         {
             if (initialized) return;
             controller = GetComponent<CharacterController>();
-            standingControllerHeight = controller.height;
-            standingControllerCenter = controller.center;
             if (humanVisual == null) humanVisual = FindChild("Aminset_Basic")?.gameObject;
             if (treeFormVisual == null) treeFormVisual = FindChild("Tree Form Visual")?.gameObject;
             animator = humanVisual == null ? GetComponentInChildren<Animator>(true) : humanVisual.GetComponentInChildren<Animator>(true);
             if (animator != null) animator.applyRootMotion = false;
-            crouchPose = GetComponent<GuardianCrouchPose>();
-            if (crouchPose == null) crouchPose = gameObject.AddComponent<GuardianCrouchPose>();
-            crouchPose.Configure(animator);
             ApplyVisualState();
             if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
             IsPhysicallyGrounded = controller.isGrounded;
@@ -144,15 +123,9 @@ namespace BeforeTheAxes
             Vector2 input = sampledInput.Move;
             input = Vector2.ClampMagnitude(input, 1f);
             bool hasMovementInput = input.sqrMagnitude > 0.001f;
-            bool wantsCrouch = sampledInput.Crouching && !IsTreeForm;
-            // Do not let the player stand into a low branch, rock, or roof. Holding crouch always
-            // works; releasing it only expands the capsule when its full standing volume is clear.
-            IsCrouching = wantsCrouch || (IsCrouching && !CanStandUp());
-            if (crouchPose != null) crouchPose.SetCrouching(IsCrouching);
-            UpdateControllerCrouch(deltaTime);
             // Visual intent is deliberately separate from physical sprinting. An exhausted guardian
             // keeps the running animation while Shift is held, but only moves at walk speed.
-            bool wantsRunAnimation = sampledInput.Running && !IsTreeForm && !IsCrouching && hasMovementInput;
+            bool wantsRunAnimation = sampledInput.Running && !IsTreeForm && hasMovementInput;
             bool running = wantsRunAnimation && canRun && stamina > 0f;
             WantsRunAnimation = wantsRunAnimation;
             IsRunning = running;
@@ -187,7 +160,7 @@ namespace BeforeTheAxes
             }
 
             verticalVelocity += Physics.gravity.y * deltaTime;
-            float movementSpeed = IsCrouching ? crouchSpeed : running ? runSpeed : walkSpeed;
+            float movementSpeed = running ? runSpeed : walkSpeed;
             CurrentMovementSpeed = movementSpeed;
             Vector3 positionBeforeMove = transform.position;
             CollisionFlags flags = controller.Move((move * movementSpeed + Vector3.up * verticalVelocity) * deltaTime);
@@ -222,8 +195,6 @@ namespace BeforeTheAxes
             // including stamina-forced exits, never invoke this event.
             if (treeForm && !IsTreeForm) TreeFormEntering?.Invoke();
             IsTreeForm = treeForm;
-            IsCrouching = false;
-            if (crouchPose != null) crouchPose.SetCrouching(false);
             ApplyVisualState();
             TreeFormChanged?.Invoke(IsTreeForm);
             if (!IsTreeForm)
@@ -261,35 +232,6 @@ namespace BeforeTheAxes
             if (treeFormVisual != null) treeFormVisual.SetActive(IsTreeForm);
         }
 
-        private void UpdateControllerCrouch(float deltaTime)
-        {
-            float target = IsCrouching ? 1f : 0f;
-            crouchBlend = Mathf.MoveTowards(crouchBlend, target, deltaTime / Mathf.Max(0.01f, crouchTransitionSeconds));
-            controller.height = Mathf.Lerp(standingControllerHeight, crouchedControllerHeight, crouchBlend);
-            Vector3 crouchedCenter = new Vector3(standingControllerCenter.x, crouchedControllerHeight * .5f, standingControllerCenter.z);
-            controller.center = Vector3.Lerp(standingControllerCenter, crouchedCenter, crouchBlend);
-        }
-
-        private bool CanStandUp()
-        {
-            if (crouchBlend <= 0f) return true;
-            float radius = controller.radius;
-            Vector3 standingCenter = transform.TransformPoint(standingControllerCenter);
-            float capsuleHalfLine = Mathf.Max(0f, standingControllerHeight * .5f - radius);
-            Vector3 bottom = standingCenter - Vector3.up * capsuleHalfLine;
-            Vector3 top = standingCenter + Vector3.up * capsuleHalfLine;
-            Collider[] overlaps = Physics.OverlapCapsule(bottom, top, radius, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            foreach (Collider overlap in overlaps)
-            {
-                // A CharacterController can report one of the guardian's own child colliders in
-                // overlap queries. Only external geometry should prevent standing up.
-                if (overlap.transform == transform || overlap.transform.IsChildOf(transform)) continue;
-                return false;
-            }
-
-            return true;
-        }
-
         private Transform FindChild(string childName)
         {
             foreach (Transform child in GetComponentsInChildren<Transform>(true))
@@ -315,8 +257,7 @@ namespace BeforeTheAxes
 
             return new GuardianInputState(
                 new Vector2(horizontal, vertical),
-                Pressed(keyboard.leftShiftKey, keyboard.rightShiftKey),
-                Pressed(keyboard.leftCtrlKey, keyboard.rightCtrlKey) || keyboard.cKey.isPressed);
+                Pressed(keyboard.leftShiftKey, keyboard.rightShiftKey));
         }
 
         private static bool Pressed(KeyControl first, KeyControl second)

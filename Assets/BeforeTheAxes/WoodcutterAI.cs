@@ -11,8 +11,6 @@ namespace BeforeTheAxes
         [SerializeField] private Transform[] patrolPoints;
         [SerializeField] private Animator animator;
         [SerializeField] private float sightRange = 14f;
-        [SerializeField] private float crouchedSightRange = 7f;
-        [SerializeField] private float crouchedCloseSightRange = 2f;
         [SerializeField, Range(1f, 180f)] private float fieldOfView = 100f;
         [Tooltip("Width of the physical line-of-sight test. Trees and props inside this body-width corridor block sight.")]
         [SerializeField, Range(.05f, .5f)] private float sightProbeRadius = .3f;
@@ -180,17 +178,11 @@ namespace BeforeTheAxes
         private bool CanSeePlayerGeometry()
         {
             Vector3 eye = transform.position + Vector3.up * 1.45f;
-            // Crouching only removes sight when it genuinely puts the player behind terrain or
-            // scenery: raycast to the lower body, rather than granting an invisibility flag.
-            Vector3 target = player.transform.position + Vector3.up * (player.IsCrouching ? 0.52f : 0.9f);
+            Vector3 target = player.transform.position + Vector3.up * 0.9f;
             Vector3 toTarget = target - eye;
             float distance = toTarget.magnitude;
-            bool crouchedClose = player.IsCrouching && distance <= crouchedCloseSightRange;
-            float effectiveSightRange = player.IsCrouching ? crouchedSightRange : sightRange;
-            if ((!crouchedClose && distance > effectiveSightRange) || distance < .01f) return distance < .01f;
-            // At arm's length a crouching player cannot remain unnoticed simply by being below
-            // the normal FOV ray; real geometry still blocks the raycast below.
-            if (!crouchedClose && Vector3.Angle(transform.forward, toTarget) > fieldOfView * .5f) return false;
+            if (distance > sightRange || distance < .01f) return distance < .01f;
+            if (Vector3.Angle(transform.forward, toTarget) > fieldOfView * .5f) return false;
             // A pin-thin ray slips through the gaps around a visible tree trunk.  Use a
             // body-width cast from the cutter's eye to the player's chest so every physical
             // tree/prop collider inside that corridor is a real line-of-sight blocker.
