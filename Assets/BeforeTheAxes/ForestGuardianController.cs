@@ -144,7 +144,6 @@ namespace BeforeTheAxes
             Vector2 input = sampledInput.Move;
             input = Vector2.ClampMagnitude(input, 1f);
             bool hasMovementInput = input.sqrMagnitude > 0.001f;
-            if (!canRun && stamina >= staminaRestartThreshold) canRun = true;
             bool wantsCrouch = sampledInput.Crouching && !IsTreeForm;
             // Do not let the player stand into a low branch, rock, or roof. Holding crouch always
             // works; releasing it only expands the capsule when its full standing volume is clear.
@@ -162,9 +161,13 @@ namespace BeforeTheAxes
                 stamina = Mathf.Max(0f, stamina - staminaDrainPerSecond * deltaTime);
                 if (stamina <= 0f) canRun = false;
             }
-            else
+            else if (!wantsRunAnimation)
             {
                 stamina = Mathf.Min(maxStamina, stamina + staminaRecoveryPerSecond * deltaTime);
+                // Exhaustion is latched while Shift stays held. This prevents the restart reserve
+                // from causing awkward run/walk pulses while preserving a deliberate re-arm once
+                // the player releases sprint and has recovered enough stamina.
+                if (!canRun && stamina >= staminaRestartThreshold) canRun = true;
             }
 
             Vector3 forward = cameraTransform == null ? Vector3.forward : Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
