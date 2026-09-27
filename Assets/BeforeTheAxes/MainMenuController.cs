@@ -75,14 +75,9 @@ namespace BeforeTheAxes
             DrawPanel(panel, new Color(.025f, .10f, .06f, .90f));
             GUI.Label(new Rect(panel.x + 36f, panel.y + 50f, 400f, 65f), "BEFORE", TitleStyle(52, new Color(.94f, .82f, .49f)));
             GUI.Label(new Rect(panel.x + 34f, panel.y + 112f, 410f, 85f), "THE AXES", TitleStyle(72, new Color(.98f, .92f, .74f)));
-            GUI.color = new Color(.88f, .67f, .28f, .9f);
-            GUI.DrawTexture(new Rect(panel.x + 36f, panel.y + 211f, 380f, 3f), Texture2D.whiteTexture);
-            GUI.color = Color.white;
-            GUI.Label(new Rect(panel.x + 37f, panel.y + 226f, 390f, 30f), "A QUIET FOREST STEALTH TALE", LabelStyle(15, FontStyle.Bold, new Color(.69f, .82f, .67f), TextAnchor.MiddleLeft));
-            if (DrawButton(new Rect(panel.x + 36f, panel.y + 315f, 386f, 58f), "START")) StartGame();
-            if (DrawButton(new Rect(panel.x + 36f, panel.y + 393f, 386f, 58f), "HELP")) ShowHelp();
-            if (DrawButton(new Rect(panel.x + 36f, panel.y + 471f, 386f, 58f), "CREDITS")) ShowCredits();
-            GUI.Label(new Rect(panel.x + 37f, panel.y + 558f, 385f, 28f), "THE ROOTS REMEMBER", LabelStyle(13, FontStyle.Italic, new Color(.63f, .72f, .58f), TextAnchor.MiddleLeft));
+            if (DrawButton(new Rect(panel.x + 36f, panel.y + 276f, 386f, 58f), "START")) StartGame();
+            if (DrawButton(new Rect(panel.x + 36f, panel.y + 354f, 386f, 58f), "HELP")) ShowHelp();
+            if (DrawButton(new Rect(panel.x + 36f, panel.y + 432f, 386f, 58f), "CREDITS")) ShowCredits();
         }
 
         private void DrawOverlay(float width, float height)
