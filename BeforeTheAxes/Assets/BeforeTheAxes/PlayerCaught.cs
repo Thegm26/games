@@ -19,7 +19,7 @@ namespace BeforeTheAxes
         [SerializeField] private AudioSource uiSoundSource;
         [Header("Presentation")]
         [SerializeField, Min(.25f)] private float caughtScreenSeconds = 2.25f;
-        [SerializeField, Range(.35f, .6f)] private float caughtOverlayAlpha = .46f;
+        [SerializeField, Range(.1f, .5f)] private float finalFadeSeconds = .22f;
 
         public bool IsCaught { get; private set; }
         public bool IsGameplayFrozen { get; private set; }
@@ -29,11 +29,14 @@ namespace BeforeTheAxes
         public event Action MainMenuReturnRequested;
 
         private Coroutine caughtRoutine;
+        private float caughtPresentationStartedAt;
 
         public void Catch()
         {
             if (IsCaught) return;
             IsCaught = true;
+            // This is deliberately unscaled: Catch freezes the forest immediately.
+            caughtPresentationStartedAt = Time.unscaledTime;
 
             PlayCaughtSoundOnce();
             FreezeGameplay();
@@ -88,33 +91,47 @@ namespace BeforeTheAxes
         {
             if (!IsCaught || Event.current.type != EventType.Repaint) return;
 
-            Color previousColor = GUI.color;
-            GUI.color = new Color(.025f, .055f, .035f, caughtOverlayAlpha);
-            GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
+            float elapsed = Mathf.Max(0f, Time.unscaledTime - caughtPresentationStartedAt);
+            float titleIn = Smooth01(elapsed / .18f);
+            float finalFadeStart = Mathf.Max(.1f, caughtScreenSeconds - finalFadeSeconds);
+            float finalFade = Smooth01((elapsed - finalFadeStart) / Mathf.Max(.01f, finalFadeSeconds));
 
-            float panelWidth = Mathf.Min(Screen.width * .78f, 760f);
-            float panelHeight = Mathf.Min(Screen.height * .31f, 230f);
-            Rect panel = new Rect((Screen.width - panelWidth) * .5f, (Screen.height - panelHeight) * .5f, panelWidth, panelHeight);
-            GUI.color = new Color(.16f, .075f, .035f, .96f);
-            GUI.Box(panel, GUIContent.none);
+            Color previousColor = GUI.color;
+            float barHeight = Mathf.Clamp(Screen.height * .105f, 44f, 108f);
+            GUI.color = new Color(.015f, .024f, .018f, .88f * titleIn);
+            GUI.DrawTexture(new Rect(0f, 0f, Screen.width, barHeight), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(0f, Screen.height - barHeight, Screen.width, barHeight), Texture2D.whiteTexture);
 
             GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
             {
                 alignment = TextAnchor.MiddleCenter,
-                fontSize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * .10f, 42f, 82f)),
+                fontSize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * .09f, 40f, 76f)),
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = new Color(1f, .79f, .40f) }
+                normal = { textColor = new Color(1f, .82f, .48f, titleIn) }
             };
             GUIStyle detailStyle = new GUIStyle(GUI.skin.label)
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontSize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * .027f, 16f, 24f)),
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = new Color(.91f, .95f, .79f) }
+                normal = { textColor = new Color(.92f, .96f, .82f, titleIn) }
             };
-            GUI.Label(new Rect(panel.x, panel.y + panel.height * .17f, panel.width, panel.height * .46f), "CAUGHT", titleStyle);
-            GUI.Label(new Rect(panel.x, panel.y + panel.height * .65f, panel.width, panel.height * .18f), "Returning to the grove...", detailStyle);
+            GUI.Label(new Rect(0f, Screen.height * .36f, Screen.width, Screen.height * .16f), "CAUGHT", titleStyle);
+            GUI.Label(new Rect(0f, Screen.height * .56f, Screen.width, Screen.height * .06f), "The woodcutters found you.", detailStyle);
+
+            // The scene remains visible during the result; black is used only for the handoff.
+            if (finalFade > 0f)
+            {
+                GUI.color = new Color(0f, 0f, 0f, finalFade);
+                GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
+            }
             GUI.color = previousColor;
+        }
+
+        private static float Smooth01(float value)
+        {
+            value = Mathf.Clamp01(value);
+            return value * value * (3f - 2f * value);
         }
     }
 }
