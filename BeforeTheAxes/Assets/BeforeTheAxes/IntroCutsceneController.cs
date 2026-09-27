@@ -31,6 +31,7 @@ namespace BeforeTheAxes
         private int pendingShot;
         private float transitionStarted;
         private float initialFadeStarted;
+        private float mushroomPresentationStarted;
         private Vector3 cameraOffset;
         private float cameraRotationOffsetDegrees;
         private Transform[] blueMushrooms;
@@ -40,7 +41,7 @@ namespace BeforeTheAxes
         private static Texture2D darkTexture;
         private static Texture2D portraitBackdropTexture;
         private static Texture2D dialogueTextBackdropTexture;
-        private RenderTexture guardianPortrait;
+        private Texture2D guardianPortrait;
         private Camera portraitCamera;
         private GameObject portraitGuardian;
         private readonly System.Collections.Generic.List<Camera> portraitExcludedCameras = new System.Collections.Generic.List<Camera>();
@@ -61,7 +62,10 @@ namespace BeforeTheAxes
         private void Awake()
         {
             if (cinematicCamera == null) cinematicCamera = Camera.main;
+            // Cutscene props must begin from the same phase every time the scene is entered.
+            mushroomPresentationStarted = Time.unscaledTime;
             CacheBlueMushrooms();
+            UpdateMushroomPresentation(0f);
             IsolatePortraitLayer();
             CreateGuardianPortrait();
             ShowShot(0);
@@ -82,7 +86,7 @@ namespace BeforeTheAxes
         private void Update()
         {
             if (loading) return;
-            UpdateMushroomPresentation(Time.unscaledTime);
+            UpdateMushroomPresentation(Time.unscaledTime - mushroomPresentationStarted);
 
             if (transitioning)
             {
@@ -235,49 +239,96 @@ namespace BeforeTheAxes
 
             if (source == null) return;
 
-            portraitGuardian = Instantiate(source.gameObject, new Vector3(0f, -10000f, 0f), source.rotation);
-            portraitGuardian.name = "Guardian Dialogue Portrait";
-            SetLayerRecursively(portraitGuardian.transform, 31);
-            SampleGuardianIdlePose();
-            foreach (Behaviour behaviour in portraitGuardian.GetComponentsInChildren<Behaviour>(true)) behaviour.enabled = false;
-            foreach (AudioSource sourceAudio in portraitGuardian.GetComponentsInChildren<AudioSource>(true)) sourceAudio.mute = true;
-
-            Bounds bounds = GetRendererBounds(portraitGuardian);
-            if (bounds.size.sqrMagnitude <= 0f) return;
-
-            guardianPortrait = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32)
+            RenderTexture portraitTarget = null;
+            Texture2D capturedPortrait = null;
+            try
             {
-                name = "Guardian Dialogue Portrait",
-                hideFlags = HideFlags.DontSave
-            };
-            guardianPortrait.Create();
+                portraitGuardian = Instantiate(source.gameObject, new Vector3(0f, -10000f, 0f), source.rotation);
+                portraitGuardian.name = "Guardian Dialogue Portrait";
+                SetLayerRecursively(portraitGuardian.transform, 31);
+                SampleGuardianIdlePose();
+                foreach (Behaviour behaviour in portraitGuardian.GetComponentsInChildren<Behaviour>(true)) behaviour.enabled = false;
+                foreach (AudioSource sourceAudio in portraitGuardian.GetComponentsInChildren<AudioSource>(true)) sourceAudio.mute = true;
 
-            GameObject cameraObject = new GameObject("Guardian Dialogue Portrait Camera") { hideFlags = HideFlags.DontSave };
-            portraitCamera = cameraObject.AddComponent<Camera>();
-            portraitCamera.enabled = false;
-            portraitCamera.cullingMask = 1 << 31;
-            portraitCamera.clearFlags = CameraClearFlags.SolidColor;
-            portraitCamera.backgroundColor = new Color(.025f, .12f, .08f, 0f);
-            portraitCamera.orthographic = true;
-            portraitCamera.targetTexture = guardianPortrait;
-            portraitCamera.nearClipPlane = .01f;
-            portraitCamera.farClipPlane = 50f;
-            portraitCamera.transform.position = bounds.center + new Vector3(-1.4f, 1.15f, 4.5f);
-            portraitCamera.transform.LookAt(bounds.center + Vector3.up * .15f);
-            portraitCamera.orthographicSize = Mathf.Max(bounds.size.y * .66f, bounds.size.x * .92f);
-            portraitCamera.Render();
+                Bounds bounds = GetRendererBounds(portraitGuardian);
+                if (bounds.size.sqrMagnitude <= 0f) return;
 
-            // The staged guardian is only a source for the dialogue portrait. Keeping the scene
-            // object active puts a large back-facing body in the centre of the first shot, behind
-            // the lower panel. The portrait texture is self-contained, so remove that duplicate
-            // from the cinematic world before the first frame is presented.
-            source.gameObject.SetActive(false);
+                // Capture display colour data in the active project colour space, then mark the
+                // sampled texture as colour data. This preserves the Gamma project today and
+                // avoids a second gamma conversion if the project later switches to Linear.
+                var descriptor = new RenderTextureDescriptor(256, 256, RenderTextureFormat.ARGB32, 16)
+                {
+                    sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear
+                };
+                portraitTarget = new RenderTexture(descriptor)
+                {
+                    name = "Guardian Dialogue Portrait Capture",
+                    hideFlags = HideFlags.DontSave
+                };
+                portraitTarget.Create();
 
-            // The texture is now self-contained.  Never leave the clone active for a game camera
-            // to render or for an Animator/root-motion component to move into the tableau.
-            portraitGuardian.SetActive(false);
-            Destroy(portraitGuardian);
-            portraitGuardian = null;
+                GameObject cameraObject = new GameObject("Guardian Dialogue Portrait Camera") { hideFlags = HideFlags.DontSave };
+                portraitCamera = cameraObject.AddComponent<Camera>();
+                portraitCamera.enabled = false;
+                portraitCamera.cullingMask = 1 << 31;
+                portraitCamera.clearFlags = CameraClearFlags.SolidColor;
+                portraitCamera.backgroundColor = new Color(.025f, .12f, .08f, 0f);
+                portraitCamera.orthographic = true;
+                portraitCamera.targetTexture = portraitTarget;
+                portraitCamera.nearClipPlane = .01f;
+                portraitCamera.farClipPlane = 50f;
+                portraitCamera.transform.position = bounds.center + new Vector3(-1.4f, 1.15f, 4.5f);
+                portraitCamera.transform.LookAt(bounds.center + Vector3.up * .15f);
+                portraitCamera.orthographicSize = Mathf.Max(bounds.size.y * .66f, bounds.size.x * .92f);
+                portraitCamera.Render();
+
+                // RenderTextures can retain platform-dependent contents after their source scene
+                // object is gone, notably on WebGL. Copy this one capture into persistent CPU
+                // backed texture data while its target is valid.
+                capturedPortrait = new Texture2D(256, 256, TextureFormat.RGBA32, false, false)
+                {
+                    name = "Guardian Dialogue Portrait",
+                    hideFlags = HideFlags.DontSave
+                };
+                RenderTexture previousActive = RenderTexture.active;
+                try
+                {
+                    RenderTexture.active = portraitTarget;
+                    capturedPortrait.ReadPixels(new Rect(0f, 0f, portraitTarget.width, portraitTarget.height), 0, 0, false);
+                    capturedPortrait.Apply(false, false);
+                }
+                finally
+                {
+                    RenderTexture.active = previousActive;
+                }
+                guardianPortrait = capturedPortrait;
+                capturedPortrait = null;
+            }
+            finally
+            {
+                // The staged guardian is only a source for the dialogue portrait. Keeping the
+                // scene object active puts a large back-facing body in the first shot.
+                source.gameObject.SetActive(false);
+
+                if (portraitCamera != null)
+                {
+                    portraitCamera.targetTexture = null;
+                    Destroy(portraitCamera.gameObject);
+                    portraitCamera = null;
+                }
+                if (portraitTarget != null)
+                {
+                    portraitTarget.Release();
+                    Destroy(portraitTarget);
+                }
+                if (capturedPortrait != null) Destroy(capturedPortrait);
+                if (portraitGuardian != null)
+                {
+                    portraitGuardian.SetActive(false);
+                    Destroy(portraitGuardian);
+                    portraitGuardian = null;
+                }
+            }
         }
 
         private void SampleGuardianIdlePose()
@@ -415,11 +466,7 @@ namespace BeforeTheAxes
                 if (portraitExcludedCameras[i] != null) portraitExcludedCameras[i].cullingMask = portraitExcludedCameraMasks[i];
             if (portraitCamera != null) Destroy(portraitCamera.gameObject);
             if (portraitGuardian != null) Destroy(portraitGuardian);
-            if (guardianPortrait != null)
-            {
-                guardianPortrait.Release();
-                Destroy(guardianPortrait);
-            }
+            if (guardianPortrait != null) Destroy(guardianPortrait);
         }
 
     }
