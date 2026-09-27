@@ -2,6 +2,8 @@
 
 A 3D stealth game built in Unity 6000.6.0f1. Escape through the forest while woodcutters patrol the area.
 
+[Play Before the Axes on itch.io](https://thegm26.itch.io/before-the-axes)
+
 ## Core loop
 
 - Travel through the forest and avoid woodcutters.

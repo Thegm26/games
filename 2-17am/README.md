@@ -5,6 +5,8 @@
 A tense, choice-driven Twine thriller created for the UCA Twine Launch Week
 Game Jam 26/27 theme **Evasion**.
 
+[Play 2:17 AM on itch.io](https://thegm26.itch.io/2-17-am)
+
 You play Alex Vale, the driver in a fatal hit-and-run. At 2:17 AM, Detective
 Mara Voss begins an unofficial interview and claims to possess a recording of
 the collision. The player must decide which truths to reveal, which lies to
