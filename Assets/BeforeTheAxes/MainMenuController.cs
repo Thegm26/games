@@ -35,7 +35,7 @@ namespace BeforeTheAxes
         public void StartGame()
         {
             PlayClick();
-            SceneManager.LoadScene("PlayableForest");
+            SceneManager.LoadScene("IntroCutscene");
         }
 
         public void ShowHelp()
