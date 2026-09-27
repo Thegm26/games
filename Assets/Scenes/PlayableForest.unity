@@ -3010,6 +3010,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BeforeTheAxes.VillageExit
   mushroom: {fileID: 0}
   arrivalEffect: {fileID: 456593965}
+  villageStumpPrefab: {fileID: 1552303706785112, guid: 68dad9db2dc9d2249aa0a58c5d2adc36, type: 3}
+  villageLeafPrefab: {fileID: 1490343738201892, guid: 7e0b0adf7ef381644b302ff611ad5bd6, type: 3}
+  villageRedMushroomPrefab: {fileID: 1240686429475702, guid: 1530caefe50f68042978f4b8cd52a92b, type: 3}
+  villageStonePrefab: {fileID: 1451074748068950, guid: 7e473d16764048e40986f54d84b14754, type: 3}
 --- !u!114 &456593965
 MonoBehaviour:
   m_ObjectHideFlags: 0
