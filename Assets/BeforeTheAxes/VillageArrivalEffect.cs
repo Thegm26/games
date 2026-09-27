@@ -15,6 +15,7 @@ namespace BeforeTheAxes
         [SerializeField] private Mesh leafMesh;
         [SerializeField] private Material leafMaterial;
 
+        private Transform effectRoot;
         private ParticleSystem leaves;
         private Light warmLight;
         private bool played;
@@ -27,9 +28,13 @@ namespace BeforeTheAxes
             if (played) return;
             played = true;
             startedAt = Time.unscaledTime;
-            transform.position = worldPosition + Vector3.up * .85f;
             EnsureEffect();
-            leaves.Clear(true);
+            // This component lives on the village trigger. Move only the transient visual,
+            // never the trigger/sign root beneath the player.
+            effectRoot.position = worldPosition + Vector3.up * .85f;
+            // Clear an already-expired (or editor-previewed) system before restarting it.
+            // This also makes repeated scene play sessions deterministic.
+            leaves.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             leaves.Play(true);
             warmLight.enabled = true;
         }
@@ -64,9 +69,18 @@ namespace BeforeTheAxes
         {
             if (leaves != null) return;
 
+            GameObject effectObject = new GameObject("Village Arrival Effect");
+            effectObject.transform.SetParent(transform, false);
+            effectRoot = effectObject.transform;
+
             GameObject particlesObject = new GameObject("Village Arrival Leaves");
-            particlesObject.transform.SetParent(transform, false);
+            particlesObject.transform.SetParent(effectRoot, false);
+            // AddComponent creates a ParticleSystem with play-on-awake enabled by default.
+            // Keep its GameObject inactive while configuring its main module: Unity does not
+            // permit changing duration while a live system is playing.
+            particlesObject.SetActive(false);
             leaves = particlesObject.AddComponent<ParticleSystem>();
+            leaves.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             ParticleSystem.MainModule main = leaves.main;
             main.playOnAwake = false;
             main.prewarm = false;
@@ -138,7 +152,7 @@ namespace BeforeTheAxes
             renderer.sortingOrder = 8;
 
             GameObject lightObject = new GameObject("Village Arrival Glow");
-            lightObject.transform.SetParent(transform, false);
+            lightObject.transform.SetParent(effectRoot, false);
             warmLight = lightObject.AddComponent<Light>();
             warmLight.type = LightType.Point;
             warmLight.color = new Color(1f, .76f, .32f);
@@ -146,6 +160,9 @@ namespace BeforeTheAxes
             warmLight.intensity = 0f;
             warmLight.shadows = LightShadows.None;
             warmLight.enabled = false;
+
+            particlesObject.SetActive(true);
+            leaves.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
 
     }
