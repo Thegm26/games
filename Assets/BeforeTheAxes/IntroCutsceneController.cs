@@ -376,6 +376,11 @@ namespace BeforeTheAxes
             if (transitioning)
             {
                 float p = TransitionProgress;
+                // A shot change uses the second half to reveal its replacement.  The final
+                // transition has no replacement in this scene: revealing it again for that
+                // half-frame flashes the final tableau just before PlayableForest loads.
+                // Reach black at the normal midpoint, then keep it there until scene loading.
+                if (transitionLoadsGame) return Mathf.Clamp01(p * 2f);
                 return p <= .5f ? p * 2f : (1f - p) * 2f;
             }
             return 1f - Mathf.Clamp01((Time.unscaledTime - initialFadeStarted) / (transitionDuration * .5f));
