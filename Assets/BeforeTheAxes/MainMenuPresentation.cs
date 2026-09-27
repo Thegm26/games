@@ -14,7 +14,6 @@ namespace BeforeTheAxes
 
         private Vector3 basePosition;
         private Quaternion baseRotation;
-        private Quaternion[] woodcutterBaseRotations;
         private float startedAt;
 
         public Vector3 BaseCameraPosition => basePosition;
@@ -26,9 +25,6 @@ namespace BeforeTheAxes
         {
             basePosition = transform.position;
             baseRotation = transform.rotation;
-            woodcutterBaseRotations = new Quaternion[woodcutterRoots == null ? 0 : woodcutterRoots.Length];
-            for (int i = 0; i < woodcutterBaseRotations.Length; i++)
-                if (woodcutterRoots[i] != null) woodcutterBaseRotations[i] = woodcutterRoots[i].rotation;
         }
 
         private void Start()
@@ -50,17 +46,14 @@ namespace BeforeTheAxes
         private void Update()
         {
             float time = Time.unscaledTime - startedAt;
-            // Less than 16 cm of travel and less than one degree of rotation: atmosphere, not camera movement.
-            transform.position = basePosition + new Vector3(Mathf.Sin(time * .23f) * .11f, Mathf.Sin(time * .37f) * .035f, Mathf.Cos(time * .19f) * .07f);
-            transform.rotation = baseRotation * Quaternion.Euler(Mathf.Sin(time * .29f) * .22f, Mathf.Sin(time * .21f) * .65f, 0f);
+            // The menu is a composed tableau.  Keep the camera and characters completely still so
+            // the interface feels anchored rather than as if the entire scene is sliding around.
+            transform.position = basePosition;
+            transform.rotation = baseRotation;
 
             if (themeMusic != null)
                 themeMusic.volume = Mathf.SmoothStep(0f, themeVolume, Mathf.Clamp01(time / themeFadeSeconds));
 
-            if (woodcutterRoots != null)
-                for (int i = 0; i < woodcutterRoots.Length; i++)
-                    if (woodcutterRoots[i] != null)
-                        woodcutterRoots[i].rotation = woodcutterBaseRotations[i] * Quaternion.Euler(0f, Mathf.Sin(time * (.38f + i * .07f) + i) * 1.8f, 0f);
         }
 
         private static void PlayIdle(Animator animator, float normalizedOffset)

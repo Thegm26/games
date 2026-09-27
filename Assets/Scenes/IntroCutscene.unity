@@ -22828,10 +22828,8 @@ MonoBehaviour:
   themeMusic: {fileID: 1034720539}
   uiAudio: {fileID: 450530213}
   clickSound: {fileID: 8300000, guid: c455e45ab5d1e0357ada56b5fdcd1578, type: 3}
-  secondsPerShot: 4.7
   transitionDuration: 0.55
-  cameraPushDistance: 0.18
-  cameraYawDegrees: 0.28
+  charactersPerSecond: 38
 --- !u!4 &1853669581
 Transform:
   m_ObjectHideFlags: 0
