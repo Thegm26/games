@@ -38,6 +38,13 @@ namespace BeforeTheAxes
         private Quaternion[] mushroomBaseRotations;
         private Light[] mushroomLights;
         private static Texture2D darkTexture;
+        private static Texture2D portraitBackdropTexture;
+        private static Texture2D dialogueTextBackdropTexture;
+        private RenderTexture guardianPortrait;
+        private Camera portraitCamera;
+        private GameObject portraitGuardian;
+        private readonly System.Collections.Generic.List<Camera> portraitExcludedCameras = new System.Collections.Generic.List<Camera>();
+        private readonly System.Collections.Generic.List<int> portraitExcludedCameraMasks = new System.Collections.Generic.List<int>();
 
         public int CurrentShot => shot;
         public string CurrentCaption => captions[Mathf.Clamp(shot, 0, captions.Length - 1)];
@@ -55,6 +62,8 @@ namespace BeforeTheAxes
         {
             if (cinematicCamera == null) cinematicCamera = Camera.main;
             CacheBlueMushrooms();
+            IsolatePortraitLayer();
+            CreateGuardianPortrait();
             ShowShot(0, true);
             initialFadeStarted = Time.unscaledTime;
         }
@@ -208,30 +217,150 @@ namespace BeforeTheAxes
             SceneManager.LoadScene("PlayableForest");
         }
 
+        private void CreateGuardianPortrait()
+        {
+            Transform source = null;
+            foreach (Transform candidate in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (candidate.name == "Shot1 Guardian")
+                {
+                    source = candidate;
+                    break;
+                }
+            }
+
+            if (source == null) return;
+
+            portraitGuardian = Instantiate(source.gameObject, new Vector3(0f, -10000f, 0f), source.rotation);
+            portraitGuardian.name = "Guardian Dialogue Portrait";
+            SetLayerRecursively(portraitGuardian.transform, 31);
+            SampleGuardianIdlePose();
+            foreach (Behaviour behaviour in portraitGuardian.GetComponentsInChildren<Behaviour>(true)) behaviour.enabled = false;
+            foreach (AudioSource sourceAudio in portraitGuardian.GetComponentsInChildren<AudioSource>(true)) sourceAudio.mute = true;
+
+            Bounds bounds = GetRendererBounds(portraitGuardian);
+            if (bounds.size.sqrMagnitude <= 0f) return;
+
+            guardianPortrait = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32)
+            {
+                name = "Guardian Dialogue Portrait",
+                hideFlags = HideFlags.DontSave
+            };
+            guardianPortrait.Create();
+
+            GameObject cameraObject = new GameObject("Guardian Dialogue Portrait Camera") { hideFlags = HideFlags.DontSave };
+            portraitCamera = cameraObject.AddComponent<Camera>();
+            portraitCamera.enabled = false;
+            portraitCamera.cullingMask = 1 << 31;
+            portraitCamera.clearFlags = CameraClearFlags.SolidColor;
+            portraitCamera.backgroundColor = new Color(.025f, .12f, .08f, 0f);
+            portraitCamera.orthographic = true;
+            portraitCamera.targetTexture = guardianPortrait;
+            portraitCamera.nearClipPlane = .01f;
+            portraitCamera.farClipPlane = 50f;
+            portraitCamera.transform.position = bounds.center + new Vector3(-1.4f, 1.15f, 4.5f);
+            portraitCamera.transform.LookAt(bounds.center + Vector3.up * .15f);
+            portraitCamera.orthographicSize = Mathf.Max(bounds.size.y * .66f, bounds.size.x * .92f);
+            portraitCamera.Render();
+
+            // The staged guardian is only a source for the dialogue portrait. Keeping the scene
+            // object active puts a large back-facing body in the centre of the first shot, behind
+            // the lower panel. The portrait texture is self-contained, so remove that duplicate
+            // from the cinematic world before the first frame is presented.
+            source.gameObject.SetActive(false);
+
+            // The texture is now self-contained.  Never leave the clone active for a game camera
+            // to render or for an Animator/root-motion component to move into the tableau.
+            portraitGuardian.SetActive(false);
+            Destroy(portraitGuardian);
+            portraitGuardian = null;
+        }
+
+        private void SampleGuardianIdlePose()
+        {
+            foreach (Animator animator in portraitGuardian.GetComponentsInChildren<Animator>(true))
+            {
+                animator.applyRootMotion = false;
+                animator.Rebind();
+                animator.Play("Base Layer.ITHappy Idle", 0, .22f);
+                animator.Update(0f);
+            }
+        }
+
+        private static Bounds GetRendererBounds(GameObject target)
+        {
+            // Shot1 Guardian contains an inactive Tree Form Visual with a much larger bound than
+            // the active child guardian.  It must not influence the portrait camera framing.
+            Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) return new Bounds(target.transform.position, Vector3.zero);
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            return bounds;
+        }
+
+        private static void SetLayerRecursively(Transform target, int layer)
+        {
+            target.gameObject.layer = layer;
+            for (int i = 0; i < target.childCount; i++) SetLayerRecursively(target.GetChild(i), layer);
+        }
+
+        private void IsolatePortraitLayer()
+        {
+            foreach (Camera camera in FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                portraitExcludedCameras.Add(camera);
+                portraitExcludedCameraMasks.Add(camera.cullingMask);
+                camera.cullingMask &= ~(1 << 31);
+            }
+        }
+
         private void OnGUI()
         {
             EnsureTexture();
-            float scale = Mathf.Min(Screen.width / 1920f, Screen.height / 1080f);
-            float width = Screen.width / scale;
-            float height = Screen.height / scale;
-            Matrix4x4 old = GUI.matrix;
-            GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
+            float width = Screen.width;
+            float height = Screen.height;
+            float uiScale = Mathf.Clamp(Mathf.Min(width / 1280f, height / 720f), .72f, 1.55f);
             float captionFade = Mathf.Clamp01((Time.unscaledTime - shotStarted) / .22f);
             float blackAlpha = GetBlackOverlayAlpha();
             GUI.color = new Color(1f, 1f, 1f, captionFade * (1f - blackAlpha));
-            Rect card = new Rect((width - 1160f) * .5f, height - 230f, 1160f, 170f);
+            float cardHeight = 220f * uiScale;
+            Rect card = new Rect(0f, height - cardHeight, width, cardHeight);
             GUI.DrawTexture(card, darkTexture);
-            GUI.color = new Color(.28f, .58f, .34f, captionFade * (1f - blackAlpha));
-            GUI.DrawTexture(new Rect(card.x, card.y, 9f, card.height), Texture2D.whiteTexture);
+            GUI.color = new Color(.36f, .82f, .47f, captionFade * (1f - blackAlpha));
+            GUI.DrawTexture(new Rect(card.x, card.y, card.width, 3f * uiScale), Texture2D.whiteTexture);
+
+            float portraitSize = Mathf.Min(card.height - 28f * uiScale, 176f * uiScale);
+            Rect portraitRect = new Rect(24f * uiScale, card.y + (card.height - portraitSize) * .5f, portraitSize, portraitSize);
             GUI.color = new Color(1f, 1f, 1f, captionFade * (1f - blackAlpha));
-            GUI.Label(new Rect(card.x + 38f, card.y + 17f, 270f, 27f), "FOREST GUARDIAN",
-                new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft, normal = { textColor = new Color(.54f, .86f, .57f) } });
+            GUI.DrawTexture(portraitRect, portraitBackdropTexture);
+            if (guardianPortrait != null) GUI.DrawTexture(portraitRect, guardianPortrait, ScaleMode.ScaleToFit, true);
+            GUI.color = new Color(.48f, .92f, .58f, captionFade * (1f - blackAlpha));
+            GUI.DrawTexture(new Rect(portraitRect.x, portraitRect.y, portraitRect.width, 2f * uiScale), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(portraitRect.x, portraitRect.yMax - 2f * uiScale, portraitRect.width, 2f * uiScale), Texture2D.whiteTexture);
+
+            float textLeft = portraitRect.xMax + 28f * uiScale;
+            float textRight = 30f * uiScale;
+            Rect textSafeArea = new Rect(textLeft - 12f * uiScale, card.y + 8f * uiScale,
+                card.width - textLeft - textRight + 12f * uiScale, card.height - 16f * uiScale);
+            // Keep the cutscene visible behind the dialogue while a shadow maintains contrast.
+            GUI.color = new Color(1f, 1f, 1f, captionFade * (1f - blackAlpha));
+            GUI.DrawTexture(textSafeArea, dialogueTextBackdropTexture);
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(16f * uiScale), fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft, normal = { textColor = new Color(.54f, .9f, .61f) } };
+            GUIStyle captionStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(27f * uiScale), fontStyle = FontStyle.Bold, wordWrap = true, alignment = TextAnchor.UpperLeft, normal = { textColor = new Color(.98f, .95f, .82f) } };
+            GUIStyle captionShadowStyle = new GUIStyle(captionStyle) { normal = { textColor = new Color(0f, 0f, 0f, .9f) } };
+            GUIStyle promptStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(13f * uiScale), fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleRight, normal = { textColor = new Color(.69f, .86f, .7f) } };
+            GUIStyle promptShadowStyle = new GUIStyle(promptStyle) { normal = { textColor = new Color(0f, 0f, 0f, .9f) } };
+            GUI.color = new Color(1f, 1f, 1f, captionFade * (1f - blackAlpha));
+            Rect titleRect = new Rect(textLeft, card.y + 17f * uiScale, card.width - textLeft - textRight, 25f * uiScale);
+            GUI.Label(titleRect, "FOREST GUARDIAN", titleStyle);
             string visibleCaption = CurrentCaption.Substring(0, VisibleCharacterCount);
-            GUI.Label(new Rect(card.x + 38f, card.y + 45f, card.width - 76f, 78f), visibleCaption,
-                new GUIStyle(GUI.skin.label) { fontSize = 27, fontStyle = FontStyle.Bold, wordWrap = true, alignment = TextAnchor.UpperLeft, normal = { textColor = new Color(.96f, .91f, .75f) } });
+            Rect captionRect = new Rect(textLeft, card.y + 46f * uiScale, card.width - textLeft - textRight, card.height - 92f * uiScale);
+            GUI.Label(new Rect(captionRect.x + 2f, captionRect.y + 2f, captionRect.width, captionRect.height), visibleCaption, captionShadowStyle);
+            GUI.Label(captionRect, visibleCaption, captionStyle);
             string prompt = IsCaptionComplete ? "CLICK / SPACE / ENTER — CONTINUE" : "CLICK / SPACE / ENTER — REVEAL TEXT";
-            GUI.Label(new Rect(card.x + 38f, card.y + 132f, card.width - 76f, 24f), prompt,
-                new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleRight, normal = { textColor = new Color(.65f, .81f, .66f) } });
+            Rect promptRect = new Rect(textLeft, card.yMax - 31f * uiScale, card.width - textLeft - textRight, 21f * uiScale);
+            GUI.Label(new Rect(promptRect.x + 1f, promptRect.y + 1f, promptRect.width, promptRect.height), prompt, promptShadowStyle);
+            GUI.Label(promptRect, prompt, promptStyle);
             // Draw the transition last so neither the old nor new caption leaks through it.
             if (blackAlpha > 0f)
             {
@@ -239,7 +368,6 @@ namespace BeforeTheAxes
                 GUI.DrawTexture(new Rect(0f, 0f, width, height), Texture2D.whiteTexture);
             }
             GUI.color = Color.white;
-            GUI.matrix = old;
         }
 
         private float GetBlackOverlayAlpha()
@@ -262,8 +390,29 @@ namespace BeforeTheAxes
         {
             if (darkTexture != null) return;
             darkTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false) { hideFlags = HideFlags.HideAndDontSave };
-            darkTexture.SetPixel(0, 0, new Color(.015f, .055f, .032f, .9f));
+            // Layered with the .6 dialogue backing this lands at roughly .64 effective opacity.
+            darkTexture.SetPixel(0, 0, new Color(.008f, .04f, .022f, .1f));
             darkTexture.Apply(false, true);
+            portraitBackdropTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false) { hideFlags = HideFlags.HideAndDontSave };
+            portraitBackdropTexture.SetPixel(0, 0, new Color(.035f, .17f, .095f, .95f));
+            portraitBackdropTexture.Apply(false, true);
+            dialogueTextBackdropTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false) { hideFlags = HideFlags.HideAndDontSave };
+            dialogueTextBackdropTexture.SetPixel(0, 0, new Color(.008f, .04f, .022f, .6f));
+            dialogueTextBackdropTexture.Apply(false, true);
         }
+
+        private void OnDestroy()
+        {
+            for (int i = 0; i < portraitExcludedCameras.Count; i++)
+                if (portraitExcludedCameras[i] != null) portraitExcludedCameras[i].cullingMask = portraitExcludedCameraMasks[i];
+            if (portraitCamera != null) Destroy(portraitCamera.gameObject);
+            if (portraitGuardian != null) Destroy(portraitGuardian);
+            if (guardianPortrait != null)
+            {
+                guardianPortrait.Release();
+                Destroy(guardianPortrait);
+            }
+        }
+
     }
 }
