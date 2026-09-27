@@ -1,3 +1,6 @@
 [submodule "MusicRide"]
 	path = MusicRide
 	url = https://github.com/Thegm26/MusicRide.git
+[submodule "Conditional-Chamber"]
+	path = Conditional-Chamber
+	url = https://github.com/Thegm26/Conditional-Chamber.git
