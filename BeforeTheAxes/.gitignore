@@ -1,0 +1,32 @@
+# Unity generated project data
+[Ll]ibrary/
+[Tt]emp/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Oo]bj/
+
+# IDE and generated solution files
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# Build/editor crash reports and generated diagnostics
+[Cc]rash[Dd]umps/
+[Cc]rash[Rr]eports/
+sysinfo.txt
+*.stacktrace
+mono_crash.mem.*.blob
+
+# Unity auto-generated files
+ExportedObj/
+*.unitypackage
+
+# Generated player builds
+/Builds/
