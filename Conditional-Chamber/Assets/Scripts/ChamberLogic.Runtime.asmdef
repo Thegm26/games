@@ -1,0 +1,14 @@
+{
+  "name": "ChamberLogic.Runtime",
+  "rootNamespace": "ChamberLogic",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,61 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+[Tt]est[Rr]esults/
+*.test-results.xml
+
+# IDE and editor files
+.idea/
+.vscode/
+.vs/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Unity crash and generated packages
+sysinfo.txt
+crashlytics-build.properties
+Assets/AssetStoreTools*
+
+# One-shot editor automation must never ship with the authored scene.
+Assets/Editor/*SceneAuthor.cs
+Assets/Editor/*SceneAuthor.cs.meta
+Assets/Editor/*Audit.cs
+Assets/Editor/*Audit.cs.meta
+
+# Keep active Unity .meta files tracked: scenes and prefabs reference their GUIDs.
+
+# Local Unity Asset Store imports. The public repository must not redistribute
+# publishers' raw source assets covered by the Standard Asset Store EULA.
+Assets/DarkDropStudio/
+Assets/DarkDropStudio.meta
+Assets/Audios/
+Assets/Audios.meta
+Assets/Low Poly ShotGun Weapon Pack 1/
+Assets/Low Poly ShotGun Weapon Pack 1.meta
+Assets/Resources/ImportedShotgun/
+Assets/Resources/ImportedShotgun.meta
+Assets/Resources/ImportedVoices/
+Assets/Resources/ImportedVoices.meta
+Assets/SimpleHands/
+Assets/SimpleHands.meta
