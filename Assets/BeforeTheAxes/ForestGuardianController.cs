@@ -69,6 +69,9 @@ namespace BeforeTheAxes
         public float Stamina => stamina;
         public float StaminaNormalized => maxStamina <= 0f ? 0f : stamina / maxStamina;
         public bool IsRunning { get; private set; }
+        /// <summary>True when the player is holding sprint with movement input and should use the
+        /// run visual, even if stamina has forced the physical movement back to walking.</summary>
+        public bool WantsRunAnimation { get; private set; }
         public bool IsCrouching { get; private set; }
         public float CurrentMovementSpeed { get; private set; }
         /// <summary>Actual horizontal displacement per second after CharacterController physics.
@@ -148,7 +151,11 @@ namespace BeforeTheAxes
             IsCrouching = wantsCrouch || (IsCrouching && !CanStandUp());
             if (crouchPose != null) crouchPose.SetCrouching(IsCrouching);
             UpdateControllerCrouch(deltaTime);
-            bool running = sampledInput.Running && !IsCrouching && hasMovementInput && canRun && stamina > 0f;
+            // Visual intent is deliberately separate from physical sprinting. An exhausted guardian
+            // keeps the running animation while Shift is held, but only moves at walk speed.
+            bool wantsRunAnimation = sampledInput.Running && !IsTreeForm && !IsCrouching && hasMovementInput;
+            bool running = wantsRunAnimation && canRun && stamina > 0f;
+            WantsRunAnimation = wantsRunAnimation;
             IsRunning = running;
             if (running)
             {
@@ -189,7 +196,7 @@ namespace BeforeTheAxes
             // The permanent controller uses ITHappy's humanoid idle, walk and run clips.
             if (!IsTreeForm && animator != null && animator.isActiveAndEnabled)
             {
-                animator.SetFloat("Speed", input.magnitude * (running ? 2f : 1f));
+                animator.SetFloat("Speed", input.magnitude * (wantsRunAnimation ? 2f : 1f));
             }
         }
 
