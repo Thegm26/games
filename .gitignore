@@ -27,3 +27,6 @@ mono_crash.mem.*.blob
 # Unity auto-generated files
 ExportedObj/
 *.unitypackage
+
+# Generated player builds
+/Builds/
