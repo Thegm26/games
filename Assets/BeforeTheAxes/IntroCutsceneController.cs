@@ -64,7 +64,7 @@ namespace BeforeTheAxes
             CacheBlueMushrooms();
             IsolatePortraitLayer();
             CreateGuardianPortrait();
-            ShowShot(0, true);
+            ShowShot(0);
             initialFadeStarted = Time.unscaledTime;
         }
 
@@ -136,16 +136,20 @@ namespace BeforeTheAxes
             if (!transitionApplied && progress >= .5f)
             {
                 transitionApplied = true;
-                if (!transitionLoadsGame) ShowShot(pendingShot, true);
+                // Start the replacement caption once, while the screen is fully black.
+                // Do not restart it when the fade finishes or the first letters visibly flash
+                // and then begin again as the new tableau is revealed.
+                if (!transitionLoadsGame) ShowShot(pendingShot);
             }
 
             if (progress < 1f) return;
             transitioning = false;
             if (transitionLoadsGame) LoadGame();
-            else shotStarted = Time.unscaledTime;
+            // ShowShot already set shotStarted at the opaque midpoint. Leaving it alone here
+            // keeps the replacement typewriter continuously progressing through the reveal.
         }
 
-        private void ShowShot(int index, bool instant)
+        private void ShowShot(int index)
         {
             shot = Mathf.Clamp(index, 0, captions.Length - 1);
             shotStarted = Time.unscaledTime;
@@ -345,16 +349,15 @@ namespace BeforeTheAxes
             // Keep the cutscene visible behind the dialogue while a shadow maintains contrast.
             GUI.color = new Color(1f, 1f, 1f, captionFade * (1f - blackAlpha));
             GUI.DrawTexture(textSafeArea, dialogueTextBackdropTexture);
-            GUIStyle titleStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(16f * uiScale), fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft, normal = { textColor = new Color(.54f, .9f, .61f) } };
             GUIStyle captionStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(27f * uiScale), fontStyle = FontStyle.Bold, wordWrap = true, alignment = TextAnchor.UpperLeft, normal = { textColor = new Color(.98f, .95f, .82f) } };
             GUIStyle captionShadowStyle = new GUIStyle(captionStyle) { normal = { textColor = new Color(0f, 0f, 0f, .9f) } };
             GUIStyle promptStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(13f * uiScale), fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleRight, normal = { textColor = new Color(.69f, .86f, .7f) } };
             GUIStyle promptShadowStyle = new GUIStyle(promptStyle) { normal = { textColor = new Color(0f, 0f, 0f, .9f) } };
             GUI.color = new Color(1f, 1f, 1f, captionFade * (1f - blackAlpha));
-            Rect titleRect = new Rect(textLeft, card.y + 17f * uiScale, card.width - textLeft - textRight, 25f * uiScale);
-            GUI.Label(titleRect, "FOREST GUARDIAN", titleStyle);
             string visibleCaption = CurrentCaption.Substring(0, VisibleCharacterCount);
-            Rect captionRect = new Rect(textLeft, card.y + 46f * uiScale, card.width - textLeft - textRight, card.height - 92f * uiScale);
+            // The portrait already establishes the speaker, so use the recovered title space
+            // for the story itself rather than repeating a name label.
+            Rect captionRect = new Rect(textLeft, card.y + 27f * uiScale, card.width - textLeft - textRight, card.height - 73f * uiScale);
             GUI.Label(new Rect(captionRect.x + 2f, captionRect.y + 2f, captionRect.width, captionRect.height), visibleCaption, captionShadowStyle);
             GUI.Label(captionRect, visibleCaption, captionStyle);
             string prompt = IsCaptionComplete ? "CLICK / SPACE / ENTER — CONTINUE" : "CLICK / SPACE / ENTER — REVEAL TEXT";
