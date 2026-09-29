@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using WhoEnters.Core;
 using WhoEnters.Presentation;
 using WhoEnters.UI;
+using WhoEnters.Audio;
 
 namespace WhoEnters.Gameplay
 {
@@ -131,7 +132,7 @@ namespace WhoEnters.Gameplay
             overlayText = Label("Overlay Text", overlay.transform, "", 30, parchment, new Vector2(560f, 330f), new Vector2(0f, 85f), TextAnchor.MiddleCenter);
             overlayPrimary = CreateButton("Overlay Primary", overlay.transform, "", gold, new Vector2(0f, -170f), BeginRun, new Vector2(360f, 78f), 25);
             overlayPrimaryText = overlayPrimary.GetComponentInChildren<Text>();
-            CreateButton("How To Play", overlay.transform, "HOW TO PLAY", new Color(0.20f, 0.15f, 0.28f), new Vector2(0f, -265f), ShowTutorial, new Vector2(360f, 58f), 18);
+            CreateButton("How To Play", overlay.transform, "HOW TO PLAY", new Color(0.20f, 0.15f, 0.28f), new Vector2(0f, -265f), HandleHowToPlay, new Vector2(360f, 58f), 18);
 
             var debugPanel = Panel("Debug Trace Panel", canvasObject.transform, new Vector2(680f, 315f), new Vector2(0f, -460f), new Color(0f, 0f, 0f, 0.85f));
             debugPanel.transform.SetAsLastSibling();
@@ -167,6 +168,12 @@ namespace WhoEnters.Gameplay
             DebugTrace.Log("scene.transition", "screen=tutorial");
         }
 
+        private void HandleHowToPlay()
+        {
+            audioSystem.NotifyUiInteraction();
+            ShowTutorial();
+        }
+
         private void BeginRun()
         {
             audioSystem.UnlockFromInteraction();
@@ -177,12 +184,14 @@ namespace WhoEnters.Gameplay
 
         private void HandleTitlePrimary()
         {
+            audioSystem.NotifyUiInteraction();
             if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
             BeginRun();
         }
 
         private void HandleTutorialPrimary()
         {
+            audioSystem.NotifyUiInteraction();
             if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
             BeginRun();
         }
@@ -198,11 +207,13 @@ namespace WhoEnters.Gameplay
             overlayPrimary.onClick.RemoveAllListeners();
             overlayPrimary.onClick.AddListener(HandleDayIntroPrimary);
             BeginCaption(StoryCaptionCatalog.DayAndDecree(run.State.Day, decree), overlayText);
+            audioSystem.Play(AudioCueIds.DayTransition);
             DebugTrace.Log("scene.transition", "screen=day-intro;day=" + run.State.Day);
         }
 
         private void HandleDayIntroPrimary()
         {
+            audioSystem.NotifyUiInteraction();
             if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
             overlay.SetActive(false);
             decreeText.transform.parent.gameObject.SetActive(true);
@@ -233,6 +244,7 @@ namespace WhoEnters.Gameplay
             DebugTrace.Log("visitor.selected", $"id={visitor.Id};day={visitor.Day};index={run.State.EncounterIndex};portrait={visitor.PortraitKey}");
             DebugTrace.Log("asset.visual_bound", $"key={visitor.PortraitKey};fallback=runtime-card");
             DebugTrace.Log("scene.transition", "screen=encounter");
+            audioSystem.Play(AudioCueIds.GateOpen);
             BeginCaption(StoryCaptionCatalog.Visitor(visitor), presentationBindings.CaptionText);
         }
 
@@ -249,6 +261,9 @@ namespace WhoEnters.Gameplay
             audioSystem.UnlockFromInteraction();
             audioSystem.Play(decision == Decision.Admit ? "verdict.admit" : "verdict.deny");
             var verdict = run.Resolve(decision);
+            audioSystem.Play(AudioCueIds.VerdictStamp);
+            if (!verdict.Correct) audioSystem.Play(AudioCueIds.IntegrityCrack);
+            else if (run.State.Streak >= 2) audioSystem.Play(AudioCueIds.StreakChime);
             feedbackText.text = verdict.Correct ? $"THE DECREE HOLDS  +{verdict.ScoreDelta}" : "A SEAL SHATTERS  −1";
             feedbackText.color = verdict.Correct ? gold : crimson;
             DebugTrace.Log("input.decision", $"source={source};decision={decision}");
@@ -282,6 +297,7 @@ namespace WhoEnters.Gameplay
             decisionButtons.SetActive(false);
             overlay.SetActive(true);
             var ending = run.Ending();
+            audioSystem.PlayEnding(ending);
             BeginCaption(StoryCaptionCatalog.Ending(ending, run.State), overlayText);
             overlayPrimaryText.text = "CONTINUE";
             overlayPrimary.onClick.RemoveAllListeners();
@@ -298,6 +314,7 @@ namespace WhoEnters.Gameplay
 
         private void HandleDaySummaryPrimary()
         {
+            audioSystem.NotifyUiInteraction();
             if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
             overlay.SetActive(false);
             card.SetActive(true);
@@ -308,6 +325,7 @@ namespace WhoEnters.Gameplay
 
         private void HandleEndingPrimary()
         {
+            audioSystem.NotifyUiInteraction();
             if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
             BeginRun();
         }
@@ -372,6 +390,7 @@ namespace WhoEnters.Gameplay
         private void ToggleMute()
         {
             audioSystem.ToggleMute();
+            if (!audioSystem.IsMuted) audioSystem.Play(AudioCueIds.UiClick);
             RefreshMuteLabel();
         }
 
