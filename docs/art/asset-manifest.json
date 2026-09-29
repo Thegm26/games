@@ -1,0 +1,695 @@
+{
+  "schemaVersion": 2,
+  "scope": "character-and-ui-art",
+  "validated": "2026-09-29",
+  "generatedWith": "OpenAI built-in image generation",
+  "postProcess": "FFmpeg only for transparent-canvas padding/resampling of six evidence overlays",
+  "runtimeRoot": [
+    "Assets/Art/Characters",
+    "Assets/Art/UI"
+  ],
+  "mobileImport": {
+    "textureType": "Sprite",
+    "pixelsPerUnit": 100,
+    "filter": "Bilinear",
+    "wrap": "Clamp",
+    "sRGB": true,
+    "alphaIsTransparency": true,
+    "mipmaps": false,
+    "readWrite": false,
+    "fallbackPhysicsShape": false,
+    "android": {
+      "format": "ASTC 6x6",
+      "unityTextureFormat": 54,
+      "buildTarget": "Android"
+    },
+    "iPhone": {
+      "format": "ASTC 6x6",
+      "unityTextureFormat": 54,
+      "buildTarget": "iPhone"
+    },
+    "estimatedFormula": "ceil(importWidth/6) * ceil(importHeight/6) * 16 bytes"
+  },
+  "guidByAssetId": {
+    "animal": "7bac39cf98fb8d42e9f930d8ede5ebb4",
+    "bard": "c63ea1921353fd8cb9cb1b95d915040e",
+    "child": "a7fcfbe112708ff21a13b7bfa2b55591",
+    "cleric": "5638179f5625f5616b99d84364812b78",
+    "commoner": "e79cda2f4316d8e1ab90796468950f15",
+    "courier": "0a81b23e47d9638fbcd20878aaeb4fc5",
+    "giant": "ffc8a8dcbb0db78b790cb56437d94b59",
+    "goblin-merchant": "cd258dd48b28833e18823a52bc3706af",
+    "guard": "e4610cc0561e85a618dc992f42987f3c",
+    "healer": "275898fcf26077265ae3abe5ff22b712",
+    "knight": "7b19a52adadb6c8768be607f3c3429f0",
+    "masked-cultist": "facb33971fd455436aecbc4f7a70ad96",
+    "noble": "7f818ed8e76fc431f84b859bcfb76000",
+    "shepherd": "ba4f4edcf641f69b18539e5cb1f6306f",
+    "traveler": "cdc98ac1a4f35add28e5e61538898fcb",
+    "witch": "cbdbee4e4019540108348f33c39fcbb4",
+    "admit-button": "aaeae2ada59cfd6e2847cc71e5a151bb",
+    "deny-button": "d6b0bb5256c5ce663859d136196617b0",
+    "visitor-card": "5084120be1db4fc0bbaaf347ee348983",
+    "decree-parchment": "29e4f1278f78b2f1a816cf6ea8ba85da",
+    "day-ending-panel": "868a1e417b62c6c0c9b2078766904ab6",
+    "integrity-broken": "1f4ec66fd218762ffa3a95d7bb70c9df",
+    "integrity-intact": "59f364c69d5b6e2a1b83412171448af0",
+    "verdict-admit": "0e86f425d075095ceba26f67b00533b3",
+    "verdict-deny": "5e7321215922d755e955d129e9cff033",
+    "forged-seal": "b4fb3d99377b4afebdd1e5e266022c14",
+    "healer-writ-kit": "c09e1b25334d44f0aee715db4f948385",
+    "moon-seal": "dcbf0bb0ea004124bc2d6caa507c62e7",
+    "red-lantern": "1bc42ecfa0ec47ef999a4c9208a51f4a",
+    "royal-counterseal": "ed5a09a4c8fb49afad1b27a6c8a2ab34",
+    "traitor-mark": "9b432fc8424249cf9a4013c1cf6f2453"
+  },
+  "assets": [
+    {
+      "path": "Assets/Art/Characters/animal.png",
+      "publicPath": "public/assets/characters/animal.png",
+      "id": "animal",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2800191,
+      "sha256": "6fdf520d12dbe44ae9f9ef5d5a34269b2cb4fdf346623fde4f35218a1c573b83",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/bard.png",
+      "publicPath": "public/assets/characters/bard.png",
+      "id": "bard",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 3025387,
+      "sha256": "5687e1d01c629f5eeed602e6810a48a8191c147658f36a97b51a489b97caec4d",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/child.png",
+      "publicPath": "public/assets/characters/child.png",
+      "id": "child",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2841650,
+      "sha256": "181a1f78abb9844c41775c9c517bd2624eebf27a996d6fce33f6227d95306899",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/cleric.png",
+      "publicPath": "public/assets/characters/cleric.png",
+      "id": "cleric",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2659577,
+      "sha256": "735e571c76294219ff865172d0b14250e8add3765e5ea5cf574a00471dc518f2",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/commoner.png",
+      "publicPath": "public/assets/characters/commoner.png",
+      "id": "commoner",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 3195140,
+      "sha256": "460a41aa4a80a5c4e25e64b31ea1ebaacd619ff045ad5576d90085cda526e33f",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/courier.png",
+      "publicPath": "public/assets/characters/courier.png",
+      "id": "courier",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2912902,
+      "sha256": "466e06b15e6fa6e67bbd65a3a1e4702d856f67171fb3d511794894f337b3914a",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/giant.png",
+      "publicPath": "public/assets/characters/giant.png",
+      "id": "giant",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 3201810,
+      "sha256": "9b67e755a72e35b874dfeaeead1b6fb602ee25eafd0a444a2c068bedb06d3b07",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/goblin-merchant.png",
+      "publicPath": "public/assets/characters/goblin-merchant.png",
+      "id": "goblin-merchant",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 3036065,
+      "sha256": "89afe285ca0450066e40a0513de256c4ca6d060ee2c3ada993a5fc23662d45aa",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/guard.png",
+      "publicPath": "public/assets/characters/guard.png",
+      "id": "guard",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2603161,
+      "sha256": "b81f1c2fdbfde2f540fe376cad9f8fb2a0429a675c27f1eb632a95f75cd30b00",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/healer.png",
+      "publicPath": "public/assets/characters/healer.png",
+      "id": "healer",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2748296,
+      "sha256": "80ed649c056e7110e2c11c9c91963d82d647bd5bba48c16623ea6707428daaa8",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/knight.png",
+      "publicPath": "public/assets/characters/knight.png",
+      "id": "knight",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2800652,
+      "sha256": "dab3b787598a82fd20c94b464e3af5e4001eeddfdb3977cad73479d2014aa691",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/masked-cultist.png",
+      "publicPath": "public/assets/characters/masked-cultist.png",
+      "id": "masked-cultist",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2894147,
+      "sha256": "ea4d3b7b3ecad66e65435253821df44c08fc6c7fdce29f66d8558eb987ea9efe",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/noble.png",
+      "publicPath": "public/assets/characters/noble.png",
+      "id": "noble",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2666488,
+      "sha256": "00a1a811af19c441b3b93fd7c0a449725511f58c37e540c667bfae2bb7f45f73",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/shepherd.png",
+      "publicPath": "public/assets/characters/shepherd.png",
+      "id": "shepherd",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 3144063,
+      "sha256": "98d4700120244a7ae6f93370f658d60333b10adfa53dca2a95637073d496f33a",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/traveler.png",
+      "publicPath": "public/assets/characters/traveler.png",
+      "id": "traveler",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 3061578,
+      "sha256": "b06b053fca5336d32613c2a95b1c96ba6e2c4efb1aaa189751fe5ba850795579",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/Characters/witch.png",
+      "publicPath": "public/assets/characters/witch.png",
+      "id": "witch",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 3079334,
+      "sha256": "eff625bae19f8d58bb37e3732a213cc243cdb00b19a6f66ece9b95c565a534e4",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "portrait",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/UI/visitor-card.png",
+      "publicPath": "public/assets/ui/visitor-card.png",
+      "id": "visitor-card",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2463487,
+      "sha256": "907406e320bfe7db98a661e46333bdc484aa1d1afda9742e30a2e9e2f9b0fbab",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "visitor card",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/UI/decree-parchment.png",
+      "publicPath": "public/assets/ui/decree-parchment.png",
+      "id": "decree-parchment",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2457039,
+      "sha256": "ea3576c55c8d5454f05803894e45cac979bdf1f0f0c6a2c73a3af4ad90a81efa",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "decree panel",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/UI/day-ending-panel.png",
+      "publicPath": "public/assets/ui/day-ending-panel.png",
+      "id": "day-ending-panel",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "bytes": 2339040,
+      "sha256": "3b7f9c1813fd2eeb7462f08bbc726b4f61466199f4e83a80b30e78ce0403bb08",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6291456,
+      "mobileMaxSize": 1024,
+      "role": "ending panel",
+      "mobileImportedDimensions": [
+        683,
+        1024
+      ],
+      "estimatedAstc6x6Bytes": 311904
+    },
+    {
+      "path": "Assets/Art/UI/admit-button.png",
+      "publicPath": "public/assets/ui/admit-button.png",
+      "id": "admit-button",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "bytes": 1599370,
+      "sha256": "67f5e5029c975cd776d7474fe20616a1c56ef3c0ca8ba27652c909291b8c995a",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6294152,
+      "mobileMaxSize": 1024,
+      "role": "admit button",
+      "mobileImportedDimensions": [
+        1024,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 235296
+    },
+    {
+      "path": "Assets/Art/UI/deny-button.png",
+      "publicPath": "public/assets/ui/deny-button.png",
+      "id": "deny-button",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "bytes": 1681014,
+      "sha256": "41d4b89075bc1c21f34d6aadeeb8f294711ecb5f8c0ffe0875484a894d3d67b0",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6294152,
+      "mobileMaxSize": 1024,
+      "role": "deny button",
+      "mobileImportedDimensions": [
+        1024,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 235296
+    },
+    {
+      "path": "Assets/Art/UI/integrity-intact.png",
+      "publicPath": "public/assets/ui/integrity-intact.png",
+      "id": "integrity-intact",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 1916556,
+      "sha256": "8247c0719d76368831587a677d2c47da573b5e0970e6d157abea7c53b5f9905e",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6290064,
+      "mobileMaxSize": 512,
+      "role": "intact seal",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/integrity-broken.png",
+      "publicPath": "public/assets/ui/integrity-broken.png",
+      "id": "integrity-broken",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 2268426,
+      "sha256": "862869666eaf15856e0c19269c11b07eeedf28de143f3c504a086a23ab4bd736",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6290064,
+      "mobileMaxSize": 512,
+      "role": "broken seal",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/verdict-admit.png",
+      "publicPath": "public/assets/ui/verdict-admit.png",
+      "id": "verdict-admit",
+      "dimensions": [
+        1278,
+        1230
+      ],
+      "bytes": 2275733,
+      "sha256": "0ba57a7dd880b0d0c8cf3e99faabcb4462194a28c51255ddf4ee9a096137a8b1",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6287760,
+      "mobileMaxSize": 512,
+      "role": "admit stamp",
+      "mobileImportedDimensions": [
+        512,
+        493
+      ],
+      "estimatedAstc6x6Bytes": 114208
+    },
+    {
+      "path": "Assets/Art/UI/verdict-deny.png",
+      "publicPath": "public/assets/ui/verdict-deny.png",
+      "id": "verdict-deny",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 1930409,
+      "sha256": "7346781893c2347a6e1ba465560f7a26d031b32d7ee6ce79143e7f5b3e8c2745",
+      "alpha": true,
+      "uncompressedRgbaBytes": 6290064,
+      "mobileMaxSize": 512,
+      "role": "deny stamp",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/Evidence/moon-seal.png",
+      "publicPath": "public/assets/ui/evidence/moon-seal.png",
+      "id": "moon-seal",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 437348,
+      "sha256": "f48b2aab6a04cb7bb8f854650499dcb644776a576cf9f8d828487972be104fbf",
+      "alpha": true,
+      "uncompressedRgbaBytes": 1048576,
+      "mobileMaxSize": 512,
+      "role": "lawful evidence",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/Evidence/forged-seal.png",
+      "publicPath": "public/assets/ui/evidence/forged-seal.png",
+      "id": "forged-seal",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 302210,
+      "sha256": "2e75f3928000ebae01d4f4669b5ee69d6a86e1ccded278df848ba6f858a00062",
+      "alpha": true,
+      "uncompressedRgbaBytes": 1048576,
+      "mobileMaxSize": 512,
+      "role": "forged evidence",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/Evidence/royal-counterseal.png",
+      "publicPath": "public/assets/ui/evidence/royal-counterseal.png",
+      "id": "royal-counterseal",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 376701,
+      "sha256": "c7c3d3a948e3cffda38b7da868562023c165f336028ee16963a81c7e291ab377",
+      "alpha": true,
+      "uncompressedRgbaBytes": 1048576,
+      "mobileMaxSize": 512,
+      "role": "counterseal evidence",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/Evidence/healer-writ-kit.png",
+      "publicPath": "public/assets/ui/evidence/healer-writ-kit.png",
+      "id": "healer-writ-kit",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 410013,
+      "sha256": "3c8e642b9effd4d64b1dce588da550fab237ee80b9a12583ebbe8d2f4ee62d71",
+      "alpha": true,
+      "uncompressedRgbaBytes": 1048576,
+      "mobileMaxSize": 512,
+      "role": "healer evidence",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/Evidence/red-lantern.png",
+      "publicPath": "public/assets/ui/evidence/red-lantern.png",
+      "id": "red-lantern",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 246481,
+      "sha256": "ec6aadf13ed58debbda0e1943ab670592bc847f62a3c69a233ebd207098cb27a",
+      "alpha": true,
+      "uncompressedRgbaBytes": 1048576,
+      "mobileMaxSize": 512,
+      "role": "danger cue",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    },
+    {
+      "path": "Assets/Art/UI/Evidence/traitor-mark.png",
+      "publicPath": "public/assets/ui/evidence/traitor-mark.png",
+      "id": "traitor-mark",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 416233,
+      "sha256": "15bf0bcf5557778f091bcaf77d10c94f8dff5095e2b8749316d2f1c60b8d4a1a",
+      "alpha": true,
+      "uncompressedRgbaBytes": 1048576,
+      "mobileMaxSize": 512,
+      "role": "cult or traitor cue",
+      "mobileImportedDimensions": [
+        512,
+        512
+      ],
+      "estimatedAstc6x6Bytes": 118336
+    }
+  ],
+  "budget": {
+    "runtimePngBytes": 67790501,
+    "uncompressedRgbaBytes": 163575376,
+    "usageRule": "Load one active portrait, one panel, one decision pair and only evidence visible on the active card; do not prewarm all assets.",
+    "estimatedAstc6x6Bytes": 7576000,
+    "estimatedAstc6x6MiB": 7.225
+  }
+}
