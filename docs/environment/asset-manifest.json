@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "tool": "OpenAI built-in image generation",
+  "outputContract": {
+    "engine": "Unity 6000.6.0f1",
+    "runtimeRoot": "Assets/Art/Environment/Runtime",
+    "pixelsPerUnit": 100,
+    "sourceDimensions": [1440, 2560],
+    "composition": "portrait 9:16; warm admit route at left; cold deny moat at right",
+    "mobileImporter": {
+      "platforms": ["Android", "iPhone"],
+      "overridden": true,
+      "maxTextureSize": 2048,
+      "compressionQuality": 50,
+      "opaqueFormat": {"name": "ASTC_RGB_6x6", "textureImporterFormat": 50},
+      "alphaFormat": {"name": "ASTC_RGBA_6x6", "textureImporterFormat": 54},
+      "generateFallbackPhysicsShape": false
+    }
+  },
+  "assets": [
+    {"path":"public/assets/environment/preflight/gatehouse-preflight-source-941x1672.png","role":"unscaled generated preflight source","dimensions":[941,1672],"pixelFormat":"rgba","bytes":2720450,"sha256":"0fd8c92993ba3b128546fdf791116b3e1a91bdde2ee310df87486fff0f04ddf4","runtime":false},
+    {"path":"public/assets/environment/preflight/gatehouse-preflight.png","role":"mobile preflight export","dimensions":[720,1280],"pixelFormat":"rgba","bytes":2551971,"sha256":"dbe4f2dec3caade75b6223a3ce1023f347fd073044f9744b009509868778c9a0","runtime":false},
+    {"path":"public/assets/environment/layers/01-castle-vista.png","role":"source backplate","dimensions":[1440,2560],"pixelFormat":"rgb24","bytes":7352319,"sha256":"f24f8b053d3aeac6c5629b57b4f8805e800319cb2e7df2bcf3cd98972e0b1f3e","runtime":false},
+    {"path":"public/assets/environment/layers/02-gate-frame.png","role":"source gate frame","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":4084519,"sha256":"23e89946ed5e35e433f85389a9e42d97f54bcf8e9e6535fa881fe26cf4fdcf55","runtime":false},
+    {"path":"public/assets/environment/layers/03-fog-rain.png","role":"source weather","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":3065235,"sha256":"4f997ba3d600b5740c58bc2857fd78620c0cb84986b1f6dfe53984b5c8b6622a","runtime":false},
+    {"path":"public/assets/environment/layers/04-torches-glow.png","role":"source torch overlay","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":2883646,"sha256":"41763987f744cf5768e0d4273be390d53bf848dfa94ef77e2e4cdf1eb67925c8","runtime":false},
+    {"path":"public/assets/environment/layers/05-foreground-silhouettes.png","role":"source foreground silhouettes","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":1728631,"sha256":"67aea3733d2c5cc7e856793a54e7c3a211ce1bb4a83ce116c615430e49089388","runtime":false},
+    {"path":"Assets/Art/Environment/Runtime/01-castle-vista.png","role":"opaque backplate","dimensions":[1440,2560],"pixelFormat":"rgb24","bytes":7352319,"sha256":"f24f8b053d3aeac6c5629b57b4f8805e800319cb2e7df2bcf3cd98972e0b1f3e","runtime":true,"sortingOrder":0},
+    {"path":"Assets/Art/Environment/Runtime/02-gate-frame.png","role":"transparent gate frame","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":4084519,"sha256":"23e89946ed5e35e433f85389a9e42d97f54bcf8e9e6535fa881fe26cf4fdcf55","runtime":true,"sortingOrder":10},
+    {"path":"Assets/Art/Environment/Runtime/03-fog-rain.png","role":"transparent weather overlay","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":3065235,"sha256":"4f997ba3d600b5740c58bc2857fd78620c0cb84986b1f6dfe53984b5c8b6622a","runtime":true,"sortingOrder":20},
+    {"path":"Assets/Art/Environment/Runtime/04-torches-glow.png","role":"transparent torch overlay","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":2883646,"sha256":"41763987f744cf5768e0d4273be390d53bf848dfa94ef77e2e4cdf1eb67925c8","runtime":true,"sortingOrder":30},
+    {"path":"Assets/Art/Environment/Runtime/05-foreground-silhouettes.png","role":"transparent foreground silhouettes","dimensions":[1440,2560],"pixelFormat":"rgba","alphaRange":[0,255],"bytes":1728631,"sha256":"67aea3733d2c5cc7e856793a54e7c3a211ce1bb4a83ce116c615430e49089388","runtime":true,"sortingOrder":40}
+  ]
+}
