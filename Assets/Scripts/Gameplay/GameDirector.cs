@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using WhoEnters.Core;
+using WhoEnters.Presentation;
 using WhoEnters.UI;
 
 namespace WhoEnters.Gameplay
@@ -27,6 +28,7 @@ namespace WhoEnters.Gameplay
         private Text dialogueText;
         private Text evidenceText;
         private Text feedbackText;
+        private Text narrativeCaptionText;
         private Text overlayText;
         private Text muteText;
         private GameObject card;
@@ -36,6 +38,10 @@ namespace WhoEnters.Gameplay
         private Text overlayPrimaryText;
         private SwipeCard swipeCard;
         private DebugOverlay debugOverlay;
+        private CaptionSequenceController captions;
+        private Text activeCaptionTarget;
+        private Action afterCaptionSequence;
+        private PresentationBindings presentationBindings;
         private bool resolving;
 
         private void Awake()
@@ -43,6 +49,7 @@ namespace WhoEnters.Gameplay
             audioSystem = GetComponent<GameAudio>();
             content = DevelopmentContent.Create();
             run = new RunStateMachine(content, ResolveSeed());
+            EnsurePresentationController();
             DebugTrace.Log("scene.transition", "scene=Gatehouse;state=Awake");
             BuildInterface();
         }
@@ -54,12 +61,23 @@ namespace WhoEnters.Gameplay
 
         private void Update()
         {
+            if (captions != null && captions.IsActive)
+            {
+                captions.Advance(Time.unscaledDeltaTime);
+                RefreshCaptionText();
+            }
             if (Input.GetKeyDown(KeyCode.D) && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
             {
                 debugOverlay.Toggle();
                 return;
             }
-            if (run.State.Phase != RunPhase.Encounter || resolving) return;
+            if (Input.GetKeyDown(KeyCode.T) && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+            {
+                captions.InstantMode = !captions.InstantMode;
+                DebugTrace.Log("presentation.debug_toggle", "instant=" + captions.InstantMode);
+                return;
+            }
+            if (run.State.Phase != RunPhase.Encounter || resolving || !IsDecisionInputAvailable) return;
             if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A)) Submit(Decision.Admit, "keyboard");
             if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D)) Submit(Decision.Deny, "keyboard");
         }
@@ -94,6 +112,9 @@ namespace WhoEnters.Gameplay
             dialogueText = Label("Dialogue", card.transform, "", 27, Color.white, new Vector2(500f, 140f), new Vector2(0f, 52f), TextAnchor.MiddleCenter);
             evidenceText = Label("Evidence", card.transform, "", 20, gold, new Vector2(500f, 106f), new Vector2(0f, -112f), TextAnchor.MiddleCenter);
             feedbackText = Label("Feedback", canvasObject.transform, "", 25, parchment, new Vector2(660f, 46f), new Vector2(0f, -302f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            var captionPanel = Panel("Narrative Caption", canvasObject.transform, new Vector2(620f, 94f), new Vector2(0f, -355f), new Color(0.08f, 0.05f, 0.13f, 0.93f));
+            narrativeCaptionText = Label("Narrative Caption Text", captionPanel.transform, "", 19, parchment, new Vector2(585f, 78f), Vector2.zero, TextAnchor.MiddleCenter);
+            presentationBindings = new PresentationBindings { CaptionText = narrativeCaptionText };
             swipeCard = card.AddComponent<SwipeCard>();
             swipeCard.Configure(card.GetComponent<RectTransform>());
             swipeCard.Decided += decision => Submit(decision, "swipe");
@@ -126,20 +147,20 @@ namespace WhoEnters.Gameplay
             decisionButtons.SetActive(false);
             decreeText.transform.parent.gameObject.SetActive(false);
             overlay.SetActive(true);
-            overlayText.text = "A storm seals the kingdom in.\n\nFor five nights, judge every soul who asks to enter the castle.\n\nSwipe left to ADMIT. Swipe right to DENY.";
-            overlayPrimaryText.text = "BEGIN THE WATCH";
+            BeginCaption(StoryCaptionCatalog.Intro(), overlayText);
+            overlayPrimaryText.text = "CONTINUE";
             overlayPrimary.onClick.RemoveAllListeners();
-            overlayPrimary.onClick.AddListener(BeginRun);
+            overlayPrimary.onClick.AddListener(HandleTitlePrimary);
             DebugTrace.Log("scene.transition", "screen=title");
         }
 
         private void ShowTutorial()
         {
             overlay.SetActive(true);
-            overlayText.text = "READ THE DECREE\n\nInspect each visitor's words, documents, and visible signs.\n\nSwipe left to admit to the castle. Swipe right to deny to the moat.\n\nA wrong official verdict costs one seal. Mercy can shape the story.";
-            overlayPrimaryText.text = "START";
+            BeginCaption(StoryCaptionCatalog.Tutorial(), overlayText);
+            overlayPrimaryText.text = "CONTINUE";
             overlayPrimary.onClick.RemoveAllListeners();
-            overlayPrimary.onClick.AddListener(BeginRun);
+            overlayPrimary.onClick.AddListener(HandleTutorialPrimary);
             PlayerPrefs.SetInt(TutorialKey, 1);
             PlayerPrefs.Save();
             DebugTrace.Log("persistence.saved", $"key={TutorialKey};value=1");
@@ -151,6 +172,38 @@ namespace WhoEnters.Gameplay
             audioSystem.UnlockFromInteraction();
             run = new RunStateMachine(content, ResolveSeed());
             run.StartRun();
+            ShowDayIntro();
+        }
+
+        private void HandleTitlePrimary()
+        {
+            if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
+            BeginRun();
+        }
+
+        private void HandleTutorialPrimary()
+        {
+            if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
+            BeginRun();
+        }
+
+        private void ShowDayIntro()
+        {
+            var decree = run.CurrentDecree();
+            card.SetActive(false);
+            decisionButtons.SetActive(false);
+            decreeText.transform.parent.gameObject.SetActive(false);
+            overlay.SetActive(true);
+            overlayPrimaryText.text = "CONTINUE";
+            overlayPrimary.onClick.RemoveAllListeners();
+            overlayPrimary.onClick.AddListener(HandleDayIntroPrimary);
+            BeginCaption(StoryCaptionCatalog.DayAndDecree(run.State.Day, decree), overlayText);
+            DebugTrace.Log("scene.transition", "screen=day-intro;day=" + run.State.Day);
+        }
+
+        private void HandleDayIntroPrimary()
+        {
+            if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
             overlay.SetActive(false);
             decreeText.transform.parent.gameObject.SetActive(true);
             card.SetActive(true);
@@ -180,20 +233,26 @@ namespace WhoEnters.Gameplay
             DebugTrace.Log("visitor.selected", $"id={visitor.Id};day={visitor.Day};index={run.State.EncounterIndex};portrait={visitor.PortraitKey}");
             DebugTrace.Log("asset.visual_bound", $"key={visitor.PortraitKey};fallback=runtime-card");
             DebugTrace.Log("scene.transition", "screen=encounter");
+            BeginCaption(StoryCaptionCatalog.Visitor(visitor), presentationBindings.CaptionText);
         }
 
         private void Submit(Decision decision, string source)
         {
-            if (resolving || run.State.Phase != RunPhase.Encounter) return;
+            if (PresentationInputGate.ConsumeDecisionCaption(captions))
+            {
+                RefreshCaptionText();
+                return;
+            }
+            if (resolving || run.State.Phase != RunPhase.Encounter || !IsDecisionInputAvailable) return;
             resolving = true;
+            var visitor = run.CurrentVisitor();
             audioSystem.UnlockFromInteraction();
             audioSystem.Play(decision == Decision.Admit ? "verdict.admit" : "verdict.deny");
             var verdict = run.Resolve(decision);
             feedbackText.text = verdict.Correct ? $"THE DECREE HOLDS  +{verdict.ScoreDelta}" : "A SEAL SHATTERS  −1";
             feedbackText.color = verdict.Correct ? gold : crimson;
-            swipeCard.enabled = false;
             DebugTrace.Log("input.decision", $"source={source};decision={decision}");
-            Invoke(nameof(ContinueAfterVerdict), 0.65f);
+            BeginCaption(StoryCaptionCatalog.Verdict(visitor, verdict, run.State), feedbackText, ContinueAfterVerdict);
         }
 
         private void ContinueAfterVerdict()
@@ -210,17 +269,10 @@ namespace WhoEnters.Gameplay
             card.SetActive(false);
             decisionButtons.SetActive(false);
             overlay.SetActive(true);
-            overlayText.text = $"DAY {run.State.Day} COMPLETE\n\nScore: {run.State.Score}\nSeals remaining: {run.State.Integrity}\n\nThe gate groans open for another night.";
-            overlayPrimaryText.text = "NEXT NIGHT";
+            BeginCaption(StoryCaptionCatalog.DaySummary(run.State), overlayText);
+            overlayPrimaryText.text = "CONTINUE";
             overlayPrimary.onClick.RemoveAllListeners();
-            overlayPrimary.onClick.AddListener(() =>
-            {
-                overlay.SetActive(false);
-                card.SetActive(true);
-                decisionButtons.SetActive(true);
-                run.AdvanceDay();
-                RenderEncounter();
-            });
+            overlayPrimary.onClick.AddListener(HandleDaySummaryPrimary);
             DebugTrace.Log("scene.transition", "screen=day-summary");
         }
 
@@ -230,11 +282,10 @@ namespace WhoEnters.Gameplay
             decisionButtons.SetActive(false);
             overlay.SetActive(true);
             var ending = run.Ending();
-            var headline = ending == EndingKind.CastleFallen ? "CASTLE FALLEN" : ending == EndingKind.HollowVictory ? "HOLLOW VICTORY" : ending == EndingKind.TheGateRemembers ? "THE GATE REMEMBERS" : "GATE HELD";
-            overlayText.text = $"{headline}\n\nFinal score: {run.State.Score}\nSeals remaining: {run.State.Integrity}\nVerdicts: {run.State.Verdicts.Count}\n\nThe stories of those you judged will outlive this storm.";
-            overlayPrimaryText.text = "KEEP THE GATE";
+            BeginCaption(StoryCaptionCatalog.Ending(ending, run.State), overlayText);
+            overlayPrimaryText.text = "CONTINUE";
             overlayPrimary.onClick.RemoveAllListeners();
-            overlayPrimary.onClick.AddListener(BeginRun);
+            overlayPrimary.onClick.AddListener(HandleEndingPrimary);
             var best = PlayerPrefs.GetInt(BestScoreKey, 0);
             if (run.State.Score > best)
             {
@@ -243,6 +294,79 @@ namespace WhoEnters.Gameplay
                 DebugTrace.Log("persistence.saved", $"key={BestScoreKey};value={run.State.Score}");
             }
             DebugTrace.Log("scene.transition", $"screen=ending;ending={ending}");
+        }
+
+        private void HandleDaySummaryPrimary()
+        {
+            if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
+            overlay.SetActive(false);
+            card.SetActive(true);
+            decisionButtons.SetActive(true);
+            run.AdvanceDay();
+            ShowDayIntro();
+        }
+
+        private void HandleEndingPrimary()
+        {
+            if (HandleCaptionAction() != TypewriterAction.CompletedSequence) return;
+            BeginRun();
+        }
+
+        /// <summary>First deliberate action completes text; only a later action reaches gameplay.</summary>
+        private TypewriterAction HandleCaptionAction()
+        {
+            if (captions == null || !captions.IsActive) return TypewriterAction.None;
+            var action = captions.HandleAction();
+            RefreshCaptionText();
+            return action;
+        }
+
+        private void BeginCaption(CaptionSequence sequence, Text target, Action afterComplete = null)
+        {
+            activeCaptionTarget = target;
+            afterCaptionSequence = afterComplete;
+            if (!captions.Begin(sequence))
+            {
+                DebugTrace.Error("presentation.error/fallback", "reason=begin-failed;target=" + (target == null ? "none" : target.name));
+                afterCaptionSequence?.Invoke();
+                return;
+            }
+            RefreshCaptionText();
+        }
+
+        private void OnCaptionStarted(CaptionLine line)
+        {
+            if (activeCaptionTarget != null) activeCaptionTarget.text = string.Empty;
+        }
+
+        private void OnCaptionSequenceCompleted(CaptionSequence sequence)
+        {
+            var continuation = afterCaptionSequence;
+            afterCaptionSequence = null;
+            continuation?.Invoke();
+        }
+
+        private void RefreshCaptionText()
+        {
+            if (activeCaptionTarget != null && captions != null) activeCaptionTarget.text = captions.VisibleText;
+        }
+
+        public void SetReducedMotion(bool enabled)
+        {
+            EnsurePresentationController();
+            captions.InstantMode = enabled;
+            DebugTrace.Log("presentation.reduced_motion", "enabled=" + enabled);
+        }
+
+        public bool IsDecisionInputAvailable => card != null && decisionButtons != null && overlay != null
+            && PresentationInputGate.IsDecisionSurfaceAvailable(card.activeInHierarchy, decisionButtons.activeInHierarchy, overlay.activeInHierarchy);
+
+        private void EnsurePresentationController()
+        {
+            if (captions != null) return;
+            captions = new CaptionSequenceController();
+            captions.CaptionStarted += OnCaptionStarted;
+            captions.SequenceCompleted += OnCaptionSequenceCompleted;
         }
 
         private void ToggleMute()
