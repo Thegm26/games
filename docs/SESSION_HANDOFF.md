@@ -25,7 +25,7 @@
 - **Current branch:** `feature/gameplay-core` (coordinate integration rather than overwriting other shared-workspace changes).
 - **Unity editor:** `/home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity`
 - **Git identity:** `Thegm26 <georgios.michalakis26@gmail.com>` for author and committer.
-- **Remote checkpoint:** `eebdcbd56b67a2b72a0b27727b59e3662ede678b` was pushed non-destructively to `origin/main` after fetch confirmed the remote had no divergent branch. Push every later checkpoint after fetch/divergence inspection.
+- **Remote checkpoint:** `ca6884aebaf3ff7e6fb3f4bb906612b9e180e38a` is the current `origin/main` content checkpoint, pushed non-destructively after fetch confirmed no divergent remote commits. Push every later checkpoint after fetch/divergence inspection.
 
 ## Approved Game Specification
 
