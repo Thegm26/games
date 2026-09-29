@@ -1,7 +1,7 @@
 # Who Enters? — Session Handoff
 
 **Last updated:** 2026-09-29 (Europe/Paris)  
-**Immediate next action:** Finish the isolated content package in `Assets/Scripts/Content/**`, validate it with headless EditMode data tests, then request the required component and integration reviews. Every future agent must read this file before any action and may not relax these constraints.
+**Immediate next action:** Re-run headless content tests after the portrait-archetype correction, then obtain the mandatory fresh connected art/content review. Every future agent must read this file before any action and may not relax these constraints.
 
 ## NON-NEGOTIABLE REQUIREMENTS
 
@@ -25,6 +25,7 @@
 - **Current branch:** `feature/gameplay-core` (coordinate integration rather than overwriting other shared-workspace changes).
 - **Unity editor:** `/home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity`
 - **Git identity:** `Thegm26 <georgios.michalakis26@gmail.com>` for author and committer.
+- **Remote checkpoint:** `eebdcbd56b67a2b72a0b27727b59e3662ede678b` was pushed non-destructively to `origin/main` after fetch confirmed the remote had no divergent branch. Push every later checkpoint after fetch/divergence inspection.
 
 ## Approved Game Specification
 
@@ -54,7 +55,9 @@
 - Environment assets are in `Assets/Art/Environment/Runtime/`; provenance and asset contract are in `docs/environment/`. Public source mirrors live in `public/assets/environment/`.
 - Environment completed three review cycles and ended **PASS**, including ASTC importer overrides. Treat it as a dependency, not content-agent ownership.
 - Active/expected roles: character/UI-art implementation active; cards/narrative implementation active; technical monitor active. Later: audio implementation; QA/integration; Sol aesthetic reviews for art direction, mobile visual UX, and cohesion/polish.
-- No known serious baseline finding is open. Pending reviews: content isolated technical/narrative review; content connected runtime/UI review; art-direction/mobile-UX/cohesion reviews after assets are connected; integration review after all components connect.
+- **Serious review correction in progress:** the first content draft exposed roughly 43 portrait keys, conflicting with the approved sixteen-archetype art pipeline. Content now owns the fixed canonical set (`guard`, `courier`, `witch`, `goblin-merchant`, `commoner`, `shepherd`, `knight`, `noble`, `cleric`, `healer`, `child`, `giant`, `animal`, `bard`, `traveler`, `masked-cultist`), validates every key, and requires every archetype to be used. Fresh art/content review is mandatory after the headless test re-run.
+- Headless content correction verification: **14/14 EditMode tests passed** (7 new content tests and 7 baseline tests) in `TestResults/editmode-content-results.xml`; the matching log is `Logs/editmode-content-tests.log`.
+- Pending reviews: content isolated technical/narrative review; content connected runtime/UI review; fresh art/content review after the canonical-key correction; art-direction/mobile-UX/cohesion reviews after assets are connected; integration review after all components connect.
 - Minor known gap: the current runtime is still wired to `DevelopmentContent`; content integration is pending and must be performed by the gameplay/integration owner, not through an unreviewed cross-ownership edit.
 
 ## Headless Commands and Results
