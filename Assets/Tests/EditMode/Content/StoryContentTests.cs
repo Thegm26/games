@@ -98,19 +98,59 @@ namespace WhoEnters.Tests.EditMode.Content
         }
 
         [Test]
-        public void EachConditionalAlternativeAndItsFallbackAreReachable()
+        public void EveryOutcomeFlagIsConsumedOrHasADocumentedTerminalEpilogueInput()
         {
             var content = StoryContent.Create();
-            foreach (var conditional in content.Visitors.Where(visitor => !string.IsNullOrEmpty(visitor.RequiredFlag)))
-            {
-                var flagged = CompleteUntilDay(content, conditional.Day, 41, null);
-                Assert.That(flagged.FrozenQueueForDay(conditional.Day).Any(visitor => visitor.Id == conditional.Id), Is.True,
-                    "required alternative=" + conditional.Id);
+            var produced = content.Visitors.SelectMany(visitor => new[] { visitor.FlagOnAdmit, visitor.FlagOnDeny })
+                .Where(flag => !string.IsNullOrWhiteSpace(flag)).Distinct().ToArray();
+            var consumed = content.Visitors.Where(visitor => !string.IsNullOrWhiteSpace(visitor.RequiredFlag))
+                .Select(visitor => visitor.RequiredFlag).ToHashSet();
 
-                var unflagged = CompleteUntilDay(content, conditional.Day, 41, conditional.RequiredFlag);
-                Assert.That(unflagged.FrozenQueueForDay(conditional.Day).Any(visitor => visitor.Id == conditional.Id), Is.False,
-                    "fallback alternative=" + conditional.Id);
+            Assert.That(StoryContent.TerminalOutcomeFlags.OrderBy(flag => flag),
+                Is.EqualTo(StoryContent.EpilogueInputs.Keys.OrderBy(flag => flag)));
+            foreach (var outcome in produced)
+            {
+                Assert.That(consumed.Contains(outcome) || StoryContent.TerminalOutcomeFlags.Contains(outcome), Is.True,
+                    "orphan outcome=" + outcome);
             }
+            foreach (var terminal in StoryContent.TerminalOutcomeFlags)
+            {
+                Assert.That(produced.Contains(terminal), Is.True, "unproduced terminal=" + terminal);
+                Assert.That(StoryContent.EpilogueInputs[terminal], Is.Not.Empty, "missing epilogue input=" + terminal);
+            }
+        }
+
+        [Test]
+        public void EveryRecurringChainHasPersistentBranchSpecificEvidenceAndTerminalEpilogueInput()
+        {
+            AssertPersistentBranch("mira", "d1-02-mira-mothwitch", Decision.Admit, Decision.Deny,
+                new[] { "d1-02-mira-mothwitch", "d3-03-mira-oathbound", "d5-07-mira-gate-remembers" }, "secret_gate_remembers",
+                new[] { "d1-02-mira-mothwitch", "d3-03-mira-rainbound", "d5-07-mira-rain-silenced" }, "mira_rain_silenced_held");
+            AssertPersistentBranch("pip", "d1-07-pip-sootwhistle", Decision.Admit, Decision.Deny,
+                new[] { "d1-07-pip-sootwhistle", "d2-02-pip-dry-letter", "d4-05-pip-ledger-dry" }, "pip_warning_heard_dry",
+                new[] { "d1-07-pip-sootwhistle", "d2-02-pip-rain-letter", "d4-05-pip-ledger-patched" }, "pip_warning_heard_rescued");
+            AssertPersistentBranch("nella", "d2-06-nella-nightsoup", Decision.Admit, Decision.Deny,
+                new[] { "d2-06-nella-nightsoup", "d3-07-nella-soup-route", "d5-02-nella-last-soup" }, "nella_safe",
+                new[] { "d2-06-nella-nightsoup", "d3-07-nella-cold-route", "d5-02-nella-late-caravan" }, "nella_patients_saved_late");
+            AssertPersistentBranch("rowan", "d2-08-sir-rowan", Decision.Admit, Decision.Deny,
+                new[] { "d2-08-sir-rowan", "d4-03-rowan-confessor", "d5-08-rowan-final-watch" }, "rowan_watch_held",
+                new[] { "d2-08-sir-rowan", "d4-03-rowan-unarmed", "d5-08-rowan-witness-watch" }, "rowan_witness_watch");
+        }
+
+        [Test]
+        public void ExplicitMercyChoicesPersistIntoMirasFinalCardAndCostIntegrity()
+        {
+            var oathRefused = CompleteWithPolicy(260928, (run, visitor, expected) => visitor.Id == "d3-03-mira-oathbound" ? Opposite(expected) : expected);
+            var rainMercy = CompleteWithPolicy(260928, (run, visitor, expected) => visitor.Id == "d1-02-mira-mothwitch"
+                ? Decision.Deny
+                : visitor.Id == "d3-03-mira-rainbound" ? Opposite(expected) : expected);
+
+            Assert.That(StoryIds(oathRefused, "mira").Last(), Is.EqualTo("d5-07-mira-refused-oath"));
+            Assert.That(TerminalFlags(oathRefused), Does.Contain("mira_oath_released"));
+            Assert.That(StoryIds(rainMercy, "mira").Last(), Is.EqualTo("d5-07-mira-second-chance"));
+            Assert.That(TerminalFlags(rainMercy), Does.Contain("mira_second_chance_held"));
+            Assert.That(oathRefused.State.Integrity, Is.EqualTo(4), "refusing the lawful raven oath costs one seal");
+            Assert.That(rainMercy.State.Integrity, Is.EqualTo(3), "denying Mira, then granting unlawful mercy, costs two seals");
         }
 
         [Test]
@@ -127,6 +167,18 @@ namespace WhoEnters.Tests.EditMode.Content
 
             var fallen = CompleteWithPolicy(14, (run, visitor, expected) => Opposite(expected));
             Assert.That(fallen.Ending(), Is.EqualTo(EndingKind.CastleFallen));
+        }
+
+        [Test]
+        public void SameSeedProducesTheSameResolvedQueues()
+        {
+            var first = CompleteWithExpectedVerdicts(260928);
+            var second = CompleteWithExpectedVerdicts(260928);
+            for (var day = 1; day <= 5; day++)
+            {
+                Assert.That(first.FrozenQueueForDay(day).Select(visitor => visitor.Id),
+                    Is.EqualTo(second.FrozenQueueForDay(day).Select(visitor => visitor.Id)), "day=" + day);
+            }
         }
 
         private static RunStateMachine CompleteWithExpectedVerdicts(int seed) => CompleteWithPolicy(seed, (run, visitor, expected) => expected);
@@ -149,27 +201,37 @@ namespace WhoEnters.Tests.EditMode.Content
             return run;
         }
 
-        private static RunStateMachine CompleteUntilDay(GameContent content, int targetDay, int seed, string suppressFlag)
+        private static void AssertPersistentBranch(string chain, string earlyVisitorId, Decision firstChoice, Decision secondChoice,
+            string[] firstExpectedIds, string firstTerminalFlag, string[] secondExpectedIds, string secondTerminalFlag)
         {
-            var run = new RunStateMachine(content, seed);
-            run.StartRun();
-            while (run.State.Day < targetDay)
-            {
-                if (run.State.Phase == RunPhase.DaySummary)
-                {
-                    run.AdvanceDay();
-                    continue;
-                }
-                var visitor = run.CurrentVisitor();
-                var expected = RuleEvaluator.Evaluate(visitor, run.CurrentDecree()).Expected;
-                var choice = Produces(visitor, suppressFlag, expected) ? Opposite(expected) : expected;
-                run.Resolve(choice);
-            }
-            return run;
+            var first = CompleteWithPolicy(260928, (run, visitor, expected) => visitor.Id == earlyVisitorId ? firstChoice : expected);
+            var second = CompleteWithPolicy(260928, (run, visitor, expected) => visitor.Id == earlyVisitorId ? secondChoice : expected);
+            var firstIds = StoryIds(first, chain);
+            var secondIds = StoryIds(second, chain);
+
+            Assert.That(firstIds, Is.EqualTo(firstExpectedIds), "first branch chain=" + chain);
+            Assert.That(secondIds, Is.EqualTo(secondExpectedIds), "second branch chain=" + chain);
+            Assert.That(firstIds.Skip(1).SequenceEqual(secondIds.Skip(1)), Is.False, "later ids reconverged chain=" + chain);
+            Assert.That(TerminalFlags(first), Does.Contain(firstTerminalFlag), "first terminal chain=" + chain);
+            Assert.That(TerminalFlags(second), Does.Contain(secondTerminalFlag), "second terminal chain=" + chain);
+            Assert.That(firstTerminalFlag, Is.Not.EqualTo(secondTerminalFlag), "terminal reconverged chain=" + chain);
+            Assert.That(StoryContent.EpilogueInputs.ContainsKey(firstTerminalFlag), Is.True, "first epilogue chain=" + chain);
+            Assert.That(StoryContent.EpilogueInputs.ContainsKey(secondTerminalFlag), Is.True, "second epilogue chain=" + chain);
+
+            var firstLater = first.Content.Visitors.Single(visitor => visitor.Id == firstIds.Last());
+            var secondLater = second.Content.Visitors.Single(visitor => visitor.Id == secondIds.Last());
+            Assert.That(VisibleFingerprint(firstLater), Is.Not.EqualTo(VisibleFingerprint(secondLater)), "later evidence reconverged chain=" + chain);
         }
 
-        private static bool Produces(VisitorDefinition visitor, string flag, Decision chosen)
-            => !string.IsNullOrEmpty(flag) && ((chosen == Decision.Admit && visitor.FlagOnAdmit == flag) || (chosen == Decision.Deny && visitor.FlagOnDeny == flag));
+        private static string[] StoryIds(RunStateMachine run, string chain)
+            => run.State.Verdicts.Select(record => run.Content.Visitors.Single(visitor => visitor.Id == record.VisitorId))
+                .Where(visitor => visitor.StoryChainId == chain).Select(visitor => visitor.Id).ToArray();
+
+        private static string[] TerminalFlags(RunStateMachine run)
+            => run.State.StoryFlags.Where(StoryContent.TerminalOutcomeFlags.Contains).ToArray();
+
+        private static string VisibleFingerprint(VisitorDefinition visitor)
+            => visitor.Dialogue + "|" + string.Join(",", visitor.Traits) + "|" + string.Join(",", visitor.Documents) + "|" + string.Join(",", visitor.VisibleCues);
 
         private static Decision Opposite(Decision value) => value == Decision.Admit ? Decision.Deny : Decision.Admit;
 

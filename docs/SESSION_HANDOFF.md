@@ -1,7 +1,7 @@
 # Who Enters? — Session Handoff
 
 **Last updated:** 2026-09-29 (Europe/Paris)  
-**Immediate next action:** Re-run headless content tests after the portrait-archetype correction, then obtain the mandatory fresh connected art/content review. Every future agent must read this file before any action and may not relax these constraints.
+**Immediate next action:** Presentation must consume the branch-specific visitor IDs and terminal epilogue flags, then an integration owner must run the connected content+runtime/UI review. Every future agent must read this file before any action and may not relax these constraints.
 
 ## NON-NEGOTIABLE REQUIREMENTS
 
@@ -56,8 +56,9 @@
 - Environment completed three review cycles and ended **PASS**, including ASTC importer overrides. Treat it as a dependency, not content-agent ownership.
 - Active/expected roles: character/UI-art implementation active; cards/narrative implementation active; technical monitor active. Later: audio implementation; QA/integration; Sol aesthetic reviews for art direction, mobile visual UX, and cohesion/polish.
 - **Serious review correction in progress:** the first content draft exposed roughly 43 portrait keys, conflicting with the approved sixteen-archetype art pipeline. Content now owns the fixed canonical set (`guard`, `courier`, `witch`, `goblin-merchant`, `commoner`, `shepherd`, `knight`, `noble`, `cleric`, `healer`, `child`, `giant`, `animal`, `bard`, `traveler`, `masked-cultist`), validates every key, and requires every archetype to be used. Fresh art/content review is mandatory after the headless test re-run.
-- Headless content correction verification: **14/14 EditMode tests passed** (7 new content tests and 7 baseline tests) in `TestResults/editmode-content-results.xml`; the matching log is `Logs/editmode-content-tests.log`.
-- Pending reviews: content isolated technical/narrative review; content connected runtime/UI review; fresh art/content review after the canonical-key correction; art-direction/mobile-UX/cohesion reviews after assets are connected; integration review after all components connect.
+- Story-branch correction checkpoint: each Mira, Pip, Nella, and Rowan early outcome now resolves to a distinct later card with distinct visible evidence, dialogue, terminal epilogue input, and no silent reconvergence. `StoryContent.TerminalOutcomeFlags` plus `EpilogueInputs` make every outcome either consumed by a later conditional card or explicitly terminal. The fresh isolated Sol content review **PASSed with no serious or minor findings**.
+- Headless branch verification: the filtered content suite is **10/10 passing** in `TestResults/editmode-content-branches.xml`; matching diagnostics are in `Logs/editmode-content-branches.log`, including `content.branch_diagnostic` for all four chains. A previous full suite was **24/27**, with all three failures owned by in-progress Presentation work: seven newly added fallback visitor captions, a `GameDirector.SetReducedMotion` null guard, and a typewriter punctuation expectation. Re-run the full suite after the presentation owner completes its correction.
+- Pending reviews: presentation must map all current authored visitor IDs and all `TerminalOutcomeFlags`; content connected runtime/UI review; fresh art/content review after the canonical-key correction; art-direction/mobile-UX/cohesion reviews after assets are connected; integration review after all components connect.
 - Minor known gap: the current runtime is still wired to `DevelopmentContent`; content integration is pending and must be performed by the gameplay/integration owner, not through an unreviewed cross-ownership edit.
 
 ## Headless Commands and Results
@@ -67,7 +68,7 @@ Run from `/home/gm26/games/who-enters`; commands write only transient `TestResul
 ```sh
 mkdir -p TestResults
 /home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity \
-  -batchmode -nographics -quit \
+  -batchmode -nographics \
   -projectPath /home/gm26/games/who-enters \
   -runTests -testPlatform EditMode \
   -testResults /home/gm26/games/who-enters/TestResults/editmode-results.xml \
@@ -78,7 +79,7 @@ Import/compile verification only (no build/export):
 
 ```sh
 /home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity \
-  -batchmode -nographics -quit \
+  -batchmode -nographics \
   -projectPath /home/gm26/games/who-enters \
   -logFile /home/gm26/games/who-enters/Logs/headless-import.log
 ```
@@ -88,11 +89,10 @@ Inspect `TestResults/editmode-results.xml`, `Logs/editmode-tests.log`, and `Logs
 ## Ordered Resume Checklist
 
 1. Read this handoff and check `git status`; preserve concurrent agents’ work.
-2. Finish and commit the cards/decrees/story content only in its owned paths.
-3. Run the headless EditMode data suite; record result paths and event diagnostics.
-4. Obtain isolated content review, correct serious issues with Terra, and repeat that review if needed.
-5. Have gameplay/integration deliberately wire the approved content provider; do not patch foreign ownership silently.
-6. Obtain connected content+runtime/UI review; correct/re-review serious findings.
-7. Complete remaining art/audio work, then run all three aesthetic reviewers against isolated and connected states.
-8. Run QA/integration headlessly with data/state/event tests and diagnostic logs.
-9. When all acceptance gates pass, launch only the Unity Editor for the user to press Play. No build/export/package.
+2. Presentation owner maps current content visitor IDs and every `StoryContent.TerminalOutcomeFlags` consequence; rerun its missing-mapping check.
+3. Run the full headless EditMode suite and record XML/log totals. Correct the Presentation-owned failures before treating the content branch checkpoint as connected.
+4. Have gameplay/integration deliberately wire the approved content provider; do not patch foreign ownership silently.
+5. Obtain connected content+runtime/UI review; correct/re-review serious findings.
+6. Complete remaining art/audio work, then run all three aesthetic reviewers against isolated and connected states.
+7. Run QA/integration headlessly with data/state/event tests and diagnostic logs.
+8. When all acceptance gates pass, launch only the Unity Editor for the user to press Play. No build/export/package.
