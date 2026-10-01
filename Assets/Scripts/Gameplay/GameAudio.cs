@@ -20,6 +20,7 @@ namespace WhoEnters.Gameplay
 
         private readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
         private readonly AudioPlaybackPolicy playbackPolicy = new AudioPlaybackPolicy();
+        private readonly EncounterArrivalCadence encounterArrivalCadence = new EncounterArrivalCadence();
         private AudioSource ambientSource;
         private AudioSource[] sfxSources;
         private int sourceCursor;
@@ -30,6 +31,7 @@ namespace WhoEnters.Gameplay
         public bool IsInteractionUnlocked => interactionUnlocked;
         public int CachedClipCount => clips.Count;
         public AudioPlaybackPolicy PlaybackPolicy => playbackPolicy;
+        public EncounterArrivalCadence EncounterArrivalCadence => encounterArrivalCadence;
 
         private void Awake()
         {
@@ -100,6 +102,16 @@ namespace WhoEnters.Gameplay
             Play(AudioCueIds.UiClick);
         }
 
+        /// <summary>
+        /// Establishes the arrival-cue scope for one gameplay run. This is intentionally not
+        /// tied to rendering, caption flow, rulebook visibility, or day transitions.
+        /// </summary>
+        public void BeginRun()
+        {
+            encounterArrivalCadence.BeginRun();
+            DebugTrace.Log("audio.arrival_run_started", $"generation={encounterArrivalCadence.RunGeneration}");
+        }
+
         public void ToggleMute()
         {
             IsMuted = !IsMuted;
@@ -111,40 +123,86 @@ namespace WhoEnters.Gameplay
             if (!IsMuted && interactionUnlocked) StartAmbient();
         }
 
-        public void Play(string cueId)
+        public bool Play(string cueId)
+        {
+            return TryPlay(cueId, false, "standard");
+        }
+
+        /// <summary>
+        /// Attempts the actual Unity playback and reports whether it began. Encounter arrivals
+        /// are slot-bounded by <see cref="EncounterArrivalCadence"/>, so they may bypass the
+        /// generic cue cooldown only through their dedicated path; every other cue keeps its
+        /// normal cooldown and polyphony policy.
+        /// </summary>
+        private bool TryPlay(string cueId, bool bypassPlaybackPolicy, string policyScope)
         {
             if (!AudioCueCatalog.TryGet(cueId, out var spec))
             {
                 DebugTrace.Error("audio.missing", "cue=" + cueId);
-                return;
+                return false;
             }
             if (!interactionUnlocked)
             {
                 DebugTrace.Log("audio.suppressed", $"cue={cueId};reason=not_activated");
-                return;
+                return false;
             }
             if (IsMuted)
             {
                 DebugTrace.Log("audio.suppressed", $"cue={cueId};reason=muted");
-                return;
+                return false;
             }
-            if (!playbackPolicy.TryAuthorize(spec, Time.unscaledTime, out var reason))
+            if (!bypassPlaybackPolicy && !playbackPolicy.TryAuthorize(spec, Time.unscaledTime, out var reason))
             {
                 DebugTrace.Log("audio.suppressed", $"cue={cueId};reason={reason}");
-                return;
+                return false;
             }
             EnsureSources();
             if (spec.Loop)
             {
                 StartAmbient();
-                return;
+                return true;
             }
             var source = NextSource();
             source.clip = GetOrCreateClip(spec);
             source.loop = false;
             source.volume = CategoryVolume(spec.Category);
             source.Play();
-            DebugTrace.Log("audio.play", $"cue={cueId};category={spec.Category};voices={playbackPolicy.ActiveVoices(cueId, Time.unscaledTime)}");
+            var voices = bypassPlaybackPolicy ? "slot_bounded" : playbackPolicy.ActiveVoices(cueId, Time.unscaledTime).ToString();
+            DebugTrace.Log("audio.play", $"cue={cueId};category={spec.Category};voices={voices};policy={policyScope}");
+            return true;
+        }
+
+        /// <summary>
+        /// Announces a newly rendered encounter once. This deliberately sits above rendering
+        /// and caption state, so re-opening or continuing copy cannot replay the arrival cue.
+        /// </summary>
+        public bool PlayEncounterArrival(int day, int encounterIndex, string visitorId)
+        {
+            if (!encounterArrivalCadence.CanAnnounce(day, encounterIndex, out var encounterKey))
+            {
+                DebugTrace.Log("audio.arrival_suppressed", $"key={encounterKey};reason=duplicate_or_invalid");
+                return false;
+            }
+
+            // New encounter cards are already gated once per stable slot. Do not let the
+            // generic gate-open cooldown consume later slots in a fast/reduced-motion run.
+            // This narrow bypass never applies to arbitrary cue playback.
+            if (!TryPlay(AudioCueIds.GateOpen, true, "arrival_slot"))
+            {
+                DebugTrace.Log("audio.arrival_suppressed", $"key={encounterKey};reason=playback_failed");
+                return false;
+            }
+
+            if (!encounterArrivalCadence.TryAnnounce(day, encounterIndex, out encounterKey))
+            {
+                // Defensive only: the call is synchronous and CanAnnounce above made this
+                // impossible, but keep the diagnostic truthful if the contract changes.
+                DebugTrace.Error("audio.arrival_state_error", $"key={encounterKey};reason=played_without_record");
+                return false;
+            }
+
+            DebugTrace.Log("audio.arrival", $"key={encounterKey};visitor={visitorId};cue={AudioCueIds.GateOpen};once=encounter;actual=true");
+            return true;
         }
 
         public void PlayEnding(EndingKind ending)
@@ -200,7 +258,8 @@ namespace WhoEnters.Gameplay
             source.spatialBlend = 0f;
             source.dopplerLevel = 0f;
             source.rolloffMode = AudioRolloffMode.Linear;
-            source.name = "WhoEnters " + sourceName;
+            // Component.name aliases GameObject.name in Unity. Keeping the component unnamed
+            // prevents a new source from renaming the GameDirector hierarchy root.
             return source;
         }
 

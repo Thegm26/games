@@ -14,7 +14,7 @@ namespace WhoEnters.Core
         public int Day;
         /// <summary>Stable 1-based position in the day's eight encounter slots. Multiple visitors may share a slot as alternatives.</summary>
         public int EncounterSlot;
-        /// <summary>Higher alternatives are selected first when their prerequisite is satisfied; a no-prerequisite fallback is required.</summary>
+        /// <summary>Higher alternatives are selected first when their prerequisites are satisfied; a no-prerequisite fallback is required.</summary>
         public int AlternativePriority;
         public string DisplayName = "";
         public string Dialogue = "";
@@ -23,7 +23,10 @@ namespace WhoEnters.Core
         public List<string> Documents = new List<string>();
         public List<string> VisibleCues = new List<string>();
         public string StoryChainId = "";
+        /// <summary>Legacy single prerequisite, retained for authored content compatibility.</summary>
         public string RequiredFlag = "";
+        /// <summary>Additional prerequisites combined with <see cref="RequiredFlag"/> using AND semantics.</summary>
+        public List<string> RequiredFlags = new List<string>();
         public string FlagOnAdmit = "";
         public string FlagOnDeny = "";
     }
@@ -64,6 +67,8 @@ namespace WhoEnters.Core
         public string VisitorId = "";
         public Decision Chosen;
         public Decision Expected;
+        public string RuleId = "";
+        public string RuleExplanation = "";
         public bool Correct;
         public int ScoreDelta;
         public int IntegrityDelta;
@@ -85,13 +90,61 @@ namespace WhoEnters.Core
 
     public readonly struct RuleEvaluation
     {
+        private static readonly IReadOnlyList<RuleMatchDiagnostic> EmptyDiagnostics = Array.AsReadOnly(Array.Empty<RuleMatchDiagnostic>());
+
         public readonly Decision Expected;
         public readonly string RuleId;
         public readonly string Explanation;
+        public readonly bool UsedDefault;
+        public readonly IReadOnlyList<RuleMatchDiagnostic> MatchedRules;
+        public readonly IReadOnlyList<RuleMatchDiagnostic> OpposingVerdictRules;
+
         public RuleEvaluation(Decision expected, string ruleId, string explanation)
+            : this(expected, ruleId, explanation, false, EmptyDiagnostics, EmptyDiagnostics)
+        {
+        }
+
+        public RuleEvaluation(
+            Decision expected,
+            string ruleId,
+            string explanation,
+            bool usedDefault,
+            IReadOnlyList<RuleMatchDiagnostic> matchedRules,
+            IReadOnlyList<RuleMatchDiagnostic> opposingVerdictRules)
         {
             Expected = expected;
             RuleId = ruleId;
+            Explanation = explanation;
+            UsedDefault = usedDefault;
+            MatchedRules = Snapshot(matchedRules);
+            OpposingVerdictRules = Snapshot(opposingVerdictRules);
+        }
+
+        private static IReadOnlyList<RuleMatchDiagnostic> Snapshot(IReadOnlyList<RuleMatchDiagnostic> diagnostics)
+        {
+            if (diagnostics == null || diagnostics.Count == 0)
+                return EmptyDiagnostics;
+
+            var snapshot = new RuleMatchDiagnostic[diagnostics.Count];
+            for (var index = 0; index < snapshot.Length; index++)
+                snapshot[index] = diagnostics[index];
+
+            return Array.AsReadOnly(snapshot);
+        }
+    }
+
+    public readonly struct RuleMatchDiagnostic
+    {
+        public readonly string Id;
+        public readonly Decision Verdict;
+        public readonly int Priority;
+        public readonly string Explanation;
+
+        public RuleMatchDiagnostic(string id, Decision verdict, int priority, string explanation)
+        {
+            Id = id;
+            Verdict = verdict;
+            Priority = priority;
             Explanation = explanation;
         }
     }

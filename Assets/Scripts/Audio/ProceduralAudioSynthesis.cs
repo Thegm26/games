@@ -42,8 +42,14 @@ namespace WhoEnters.Audio
                     return .42f * Sine(46f, time) + .24f * Sine(59f, time) + .12f * Sine(92f, time) + .12f * Sine(4f, time) * Sine(184f, time);
                 case AudioRecipe.DistantBell:
                     return Decay(n, 2.5f) * (.65f * Sine(523.25f, time) + .28f * Sine(1046.5f, time) + .16f * Sine(1569.75f, time));
-                case AudioRecipe.GateCreak:
-                    return .46f * Sine(82f + 30f * n, time) + .24f * DeterministicNoise(index) + .15f * Sine(164f + 40f * n, time);
+                case AudioRecipe.GateCardArrival:
+                    // Avoid the broad-band noise and abrupt low creak that made the former
+                    // arrival sound read as a harsh impact.  These consonant, deterministic
+                    // partials suggest a small wooden gate settling and a card arriving.
+                    return Decay(n, 3.7f) * (
+                        .46f * Sine(196f, time)
+                        + .25f * Sine(293.66f, time)
+                        + .10f * Sine(392f, time));
                 case AudioRecipe.CardPickup:
                     return Decay(n, 7f) * (.56f * DeterministicNoise(index) + .18f * Sine(680f, time));
                 case AudioRecipe.CardRustle:
@@ -77,7 +83,9 @@ namespace WhoEnters.Audio
         private static float Envelope(AudioCueSpec spec, float n)
         {
             if (spec.Loop) return 1f;
-            const float attack = .025f;
+            // The arrival is intentionally eased in over a small beat.  Its consonant partials
+            // otherwise reach audible level within 20ms, which reads as a click on phone speakers.
+            var attack = spec.Recipe == AudioRecipe.GateCardArrival ? .12f : .025f;
             const float release = .07f;
             var rise = Mathf.Clamp01(n / attack);
             var fall = Mathf.Clamp01((1f - n) / release);

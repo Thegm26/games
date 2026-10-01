@@ -56,6 +56,130 @@ namespace WhoEnters.Tests.EditMode.Content
         }
 
         [Test]
+        public void DecreesStateFirstMatchWinsAndEveryReachableSlotAlternativeKeepsItsConflictQuota()
+        {
+            var content = StoryContent.Create();
+            var quotas = new Dictionary<int, int> { { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 }, { 5, 5 } };
+            foreach (var decree in content.Decrees)
+            {
+                Assert.That(decree.DisplayText, Does.Contain("FIRST MATCH WINS"), "day=" + decree.Day);
+                Assert.That(decree.DisplayText, Does.Contain("DEFAULT: " + decree.DefaultVerdict.ToString().ToUpperInvariant()), "day=" + decree.Day);
+                Assert.That(decree.DisplayText.Split('\n').Count(line => line == "FIRST MATCH WINS"), Is.EqualTo(1), "day=" + decree.Day);
+                Assert.That(decree.DisplayText.Split('\n').Count(line => line.StartsWith("DEFAULT: ")), Is.EqualTo(1), "day=" + decree.Day);
+                var conflictSlots = 0;
+                foreach (var slot in content.Visitors.Where(visitor => visitor.Day == decree.Day).GroupBy(visitor => visitor.EncounterSlot))
+                {
+                    var conflicts = slot.Select(visitor => RuleEvaluator.Evaluate(visitor, decree).OpposingVerdictRules.Count > 0).Distinct().ToArray();
+                    Assert.That(conflicts, Has.Length.EqualTo(1), "route drift day=" + decree.Day + ";slot=" + slot.Key);
+                    if (conflicts[0]) conflictSlots++;
+                }
+                Assert.That(conflictSlots, Is.EqualTo(quotas[decree.Day]), "day=" + decree.Day);
+            }
+        }
+
+        [Test]
+        public void EveryVisitorHasOneToFourUniqueFactsAndNearMissesRemainHarmless()
+        {
+            var content = StoryContent.Create();
+            foreach (var visitor in content.Visitors)
+            {
+                var facts = visitor.Traits.Concat(visitor.Documents).Concat(visitor.VisibleCues).ToArray();
+                Assert.That(facts, Has.Length.InRange(1, 4), visitor.Id);
+                Assert.That(facts.Distinct().ToArray(), Has.Length.EqualTo(facts.Length), visitor.Id);
+            }
+            foreach (var decree in content.Decrees)
+            {
+                foreach (var rule in decree.Rules.Where(rule => rule.RequiredTraits.Count + rule.RequiredDocuments.Count + rule.RequiredVisibleCues.Count > 1))
+                {
+                    var required = rule.RequiredTraits.Concat(rule.RequiredDocuments).Concat(rule.RequiredVisibleCues).ToArray();
+                    Assert.That(content.Visitors.Where(visitor => visitor.Day == decree.Day).Any(visitor =>
+                    {
+                        var count = visitor.Traits.Concat(visitor.Documents).Concat(visitor.VisibleCues).Count(required.Contains);
+                        return count > 0 && count < required.Length && RuleEvaluator.Evaluate(visitor, decree).UsedDefault;
+                    }), Is.True, "near miss=" + rule.Id);
+                }
+            }
+        }
+
+        [Test]
+        public void PredecisionDialogueDoesNotNameRuleFacts()
+        {
+            var content = StoryContent.Create();
+            var decisiveFacts = content.Decrees.SelectMany(decree => decree.Rules)
+                .SelectMany(rule => rule.RequiredTraits.Concat(rule.RequiredDocuments).Concat(rule.RequiredVisibleCues))
+                .Distinct().ToArray();
+            foreach (var visitor in content.Visitors)
+                foreach (var fact in decisiveFacts)
+                    Assert.That(visitor.Dialogue.IndexOf(fact, System.StringComparison.OrdinalIgnoreCase), Is.EqualTo(-1),
+                        "visitor=" + visitor.Id + ";fact=" + fact);
+        }
+
+        [Test]
+        public void AllAuthoredDialogueIsUniqueAtmosphericAndCannotRevealAVerdict()
+        {
+            var content = StoryContent.Create();
+            var forbiddenConclusionLanguage = new[]
+            {
+                "rulebook", "rule", "decree", "first match", "default", "admit", "deny", "right", "left",
+                "recommend", "expected verdict", "default.no_exception",
+            };
+
+            Assert.That(content.Visitors, Has.Count.EqualTo(64));
+            Assert.That(content.Visitors.Select(visitor => visitor.Dialogue).Distinct().Count(), Is.EqualTo(64));
+            foreach (var visitor in content.Visitors)
+            {
+                Assert.That(visitor.Dialogue, Is.Not.Empty, "visitor=" + visitor.Id);
+                Assert.That(visitor.Dialogue.Length, Is.LessThanOrEqualTo(100), "visitor=" + visitor.Id);
+                Assert.That(visitor.Dialogue.Length, Is.LessThanOrEqualTo(44), "two-line mobile budget visitor=" + visitor.Id);
+                Assert.That(visitor.Dialogue, Does.Not.Contain("waits for your decision"), "visitor=" + visitor.Id);
+                foreach (var forbidden in forbiddenConclusionLanguage)
+                    Assert.That(visitor.Dialogue.IndexOf(forbidden, System.StringComparison.OrdinalIgnoreCase), Is.EqualTo(-1),
+                        "visitor=" + visitor.Id + ";forbidden=" + forbidden);
+
+                var decree = content.Decrees.Single(item => item.Day == visitor.Day);
+                foreach (var rule in decree.Rules)
+                {
+                    Assert.That(visitor.Dialogue.IndexOf(rule.Id, System.StringComparison.OrdinalIgnoreCase), Is.EqualTo(-1),
+                        "visitor=" + visitor.Id + ";ruleId=" + rule.Id);
+                    Assert.That(visitor.Dialogue.IndexOf(rule.Label, System.StringComparison.OrdinalIgnoreCase), Is.EqualTo(-1),
+                        "visitor=" + visitor.Id + ";ruleLabel=" + rule.Id);
+                }
+
+                var evaluation = RuleEvaluator.Evaluate(visitor, decree);
+                if (evaluation.UsedDefault) continue;
+                var winningRule = decree.Rules.Single(rule => rule.Id == evaluation.RuleId);
+                var winningFacts = winningRule.RequiredTraits.Concat(winningRule.RequiredDocuments)
+                    .Concat(winningRule.RequiredVisibleCues);
+                foreach (var fact in winningFacts)
+                    Assert.That(visitor.Dialogue.IndexOf(fact, System.StringComparison.OrdinalIgnoreCase), Is.EqualTo(-1),
+                        "visitor=" + visitor.Id + ";winningFact=" + fact);
+            }
+        }
+
+        [Test]
+        public void MobileCopyHasHardReadabilityBudgetsAndEveryRuleClueIsShort()
+        {
+            var content = StoryContent.Create();
+            foreach (var decree in content.Decrees)
+            {
+                Assert.That(decree.DisplayText.Length, Is.LessThanOrEqualTo(140), "decree day=" + decree.Day);
+                Assert.That(decree.DisplayText, Does.Contain("ADMIT"), "decree day=" + decree.Day);
+                Assert.That(decree.DisplayText, Does.Contain("DENY"), "decree day=" + decree.Day);
+                var lines = decree.DisplayText.Split('\n');
+                Assert.That(lines[0], Is.EqualTo("FIRST MATCH WINS"), "decree day=" + decree.Day);
+                Assert.That(lines.Last(), Is.EqualTo("DEFAULT: DENY"), "decree day=" + decree.Day);
+                Assert.That(lines.Skip(1).Take(lines.Length - 2).Select((line, index) => line.StartsWith((index + 1) + ". ")).All(value => value), Is.True,
+                    "decree day=" + decree.Day + " ordered rule labels");
+            }
+            foreach (var visitor in content.Visitors)
+            {
+                Assert.That(visitor.Dialogue.Length, Is.LessThanOrEqualTo(100), "dialogue=" + visitor.Id);
+                foreach (var clue in visitor.Traits.Concat(visitor.Documents).Concat(visitor.VisibleCues))
+                    Assert.That(clue.Length, Is.LessThanOrEqualTo(35), "clue=" + visitor.Id + ";value=" + clue);
+            }
+        }
+
+        [Test]
         public void PortraitKeysUseAllAndOnlyTheSixteenApprovedArchetypes()
         {
             var content = StoryContent.Create();
@@ -73,10 +197,11 @@ namespace WhoEnters.Tests.EditMode.Content
             {
                 new FlagProducer(visitor.FlagOnAdmit, visitor.Day), new FlagProducer(visitor.FlagOnDeny, visitor.Day),
             }).Where(flag => !string.IsNullOrEmpty(flag.Flag)).ToArray();
-            foreach (var conditional in content.Visitors.Where(visitor => !string.IsNullOrEmpty(visitor.RequiredFlag)))
+            foreach (var conditional in content.Visitors)
             {
-                Assert.That(flags.Any(flag => flag.Flag == conditional.RequiredFlag && flag.Day < conditional.Day), Is.True,
-                    "required=" + conditional.RequiredFlag + ";visitor=" + conditional.Id);
+                foreach (var requiredFlag in RequiredFlags(conditional))
+                    Assert.That(flags.Any(flag => flag.Flag == requiredFlag && flag.Day < conditional.Day), Is.True,
+                        "required=" + requiredFlag + ";visitor=" + conditional.Id);
             }
             var chains = content.Visitors.Where(visitor => !string.IsNullOrEmpty(visitor.StoryChainId)).GroupBy(visitor => visitor.StoryChainId).ToArray();
             Assert.That(chains.Select(chain => chain.Key).OrderBy(key => key), Is.EqualTo(new[] { "mira", "nella", "pip", "rowan" }));
@@ -98,13 +223,30 @@ namespace WhoEnters.Tests.EditMode.Content
         }
 
         [Test]
+        public void EveryResolvedCardInEachSeedHasOneVisibleDeterministicRuleAndFortyVerdicts()
+        {
+            foreach (var seed in Seeds)
+            {
+                var run = CompleteWithExpectedVerdicts(seed);
+                Assert.That(run.State.Verdicts, Has.Count.EqualTo(40), "seed=" + seed);
+                foreach (var record in run.State.Verdicts)
+                {
+                    var visitor = run.Content.Visitors.Single(item => item.Id == record.VisitorId);
+                    var decree = run.Content.Decrees.Single(item => item.Day == visitor.Day);
+                    var result = RuleEvaluator.Evaluate(visitor, decree);
+                    Assert.That(record.Chosen, Is.EqualTo(result.Expected), "seed=" + seed + ";visitor=" + visitor.Id);
+                    Assert.That(result.RuleId, Is.Not.Empty, "seed=" + seed + ";visitor=" + visitor.Id);
+                }
+            }
+        }
+
+        [Test]
         public void EveryOutcomeFlagIsConsumedOrHasADocumentedTerminalEpilogueInput()
         {
             var content = StoryContent.Create();
             var produced = content.Visitors.SelectMany(visitor => new[] { visitor.FlagOnAdmit, visitor.FlagOnDeny })
                 .Where(flag => !string.IsNullOrWhiteSpace(flag)).Distinct().ToArray();
-            var consumed = content.Visitors.Where(visitor => !string.IsNullOrWhiteSpace(visitor.RequiredFlag))
-                .Select(visitor => visitor.RequiredFlag).ToHashSet();
+            var consumed = content.Visitors.SelectMany(RequiredFlags).ToHashSet();
 
             Assert.That(StoryContent.TerminalOutcomeFlags.OrderBy(flag => flag),
                 Is.EqualTo(StoryContent.EpilogueInputs.Keys.OrderBy(flag => flag)));
@@ -170,6 +312,35 @@ namespace WhoEnters.Tests.EditMode.Content
         }
 
         [Test]
+        public void FreshRunStateExplorationReachesEveryVisitorAndEveryOutcomeFlag()
+        {
+            var content = StoryContent.Create();
+            var targets = content.Visitors.Select(visitor => new ReachabilityTarget(visitor.Id, null))
+                .Concat(content.Visitors.SelectMany(visitor => new[]
+                {
+                    new ReachabilityTarget(visitor.Id, visitor.FlagOnAdmit),
+                    new ReachabilityTarget(visitor.Id, visitor.FlagOnDeny),
+                }).Where(target => !string.IsNullOrWhiteSpace(target.OutcomeFlag)))
+                .ToArray();
+
+            // This visits every authored visitor and every authored outcome transition. Each target starts
+            // from a new RunStateMachine and derives prerequisite decisions from actual flag producers;
+            // it never injects flags or alters a frozen queue. Non-prerequisite cards use their visible
+            // lawful verdict, so all authored route controls and fallbacks are covered without an exponential
+            // replay of decision-equivalent, flagless cards.
+            for (var index = 0; index < targets.Length; index++)
+            {
+                var target = targets[index];
+                var run = CompleteFreshReachabilityPath(content, Seeds[index % Seeds.Length], target);
+                Assert.That(run.State.Verdicts.Any(record => record.VisitorId == target.VisitorId), Is.True,
+                    "unreached visitor=" + target.VisitorId + ";seed=" + run.State.Seed);
+                if (!string.IsNullOrWhiteSpace(target.OutcomeFlag))
+                    Assert.That(run.State.StoryFlags, Does.Contain(target.OutcomeFlag),
+                        "unreached outcome=" + target.OutcomeFlag + ";visitor=" + target.VisitorId + ";seed=" + run.State.Seed);
+            }
+        }
+
+        [Test]
         public void SameSeedProducesTheSameResolvedQueues()
         {
             var first = CompleteWithExpectedVerdicts(260928);
@@ -182,6 +353,76 @@ namespace WhoEnters.Tests.EditMode.Content
         }
 
         private static RunStateMachine CompleteWithExpectedVerdicts(int seed) => CompleteWithPolicy(seed, (run, visitor, expected) => expected);
+
+        private static RunStateMachine CompleteFreshReachabilityPath(GameContent content, int seed, ReachabilityTarget target)
+        {
+            var forcedDecisions = new Dictionary<string, Decision>();
+            var planning = new HashSet<string>();
+            var targetVisitor = content.Visitors.Single(visitor => visitor.Id == target.VisitorId);
+            PlanVisitorPrerequisites(content, targetVisitor, forcedDecisions, planning);
+            PlanFallbackPrerequisites(content, targetVisitor, forcedDecisions, planning);
+            if (!string.IsNullOrWhiteSpace(target.OutcomeFlag))
+            {
+                var decision = targetVisitor.FlagOnAdmit == target.OutcomeFlag ? Decision.Admit : Decision.Deny;
+                forcedDecisions.Add(targetVisitor.Id, decision);
+            }
+            var run = new RunStateMachine(content, seed);
+            run.StartRun();
+            while (run.State.Phase != RunPhase.Ending)
+            {
+                if (run.State.Phase == RunPhase.DaySummary)
+                {
+                    run.AdvanceDay();
+                    continue;
+                }
+                var visitor = run.CurrentVisitor();
+                var expected = RuleEvaluator.Evaluate(visitor, run.CurrentDecree()).Expected;
+                run.Resolve(forcedDecisions.TryGetValue(visitor.Id, out var decision) ? decision : expected);
+            }
+            return run;
+        }
+
+        private static void PlanVisitorPrerequisites(GameContent content, VisitorDefinition visitor,
+            Dictionary<string, Decision> forcedDecisions, HashSet<string> planning)
+        {
+            Assert.That(planning.Add(visitor.Id), Is.True, "flag dependency cycle visitor=" + visitor.Id);
+            foreach (var requiredFlag in RequiredFlags(visitor))
+            {
+                var producer = content.Visitors.FirstOrDefault(candidate => candidate.Day < visitor.Day &&
+                    (candidate.FlagOnAdmit == requiredFlag || candidate.FlagOnDeny == requiredFlag));
+                Assert.That(producer, Is.Not.Null, "missing producer flag=" + requiredFlag + ";visitor=" + visitor.Id);
+                PlanVisitorPrerequisites(content, producer, forcedDecisions, planning);
+                var decision = producer.FlagOnAdmit == requiredFlag ? Decision.Admit : Decision.Deny;
+                if (forcedDecisions.TryGetValue(producer.Id, out var existing))
+                    Assert.That(existing, Is.EqualTo(decision), "conflicting producer visitor=" + producer.Id);
+                else
+                    forcedDecisions.Add(producer.Id, decision);
+            }
+            planning.Remove(visitor.Id);
+        }
+
+        private static void PlanFallbackPrerequisites(GameContent content, VisitorDefinition target,
+            Dictionary<string, Decision> forcedDecisions, HashSet<string> planning)
+        {
+            if (RequiredFlags(target).Any()) return;
+            var conditionalAlternatives = content.Visitors.Where(visitor => visitor.Day == target.Day &&
+                    visitor.EncounterSlot == target.EncounterSlot && visitor.AlternativePriority > target.AlternativePriority)
+                .ToArray();
+            if (conditionalAlternatives.Length == 0) return;
+            var routeControl = conditionalAlternatives.Select(visitor => visitor.RequiredFlags ?? new List<string>())
+                .Aggregate((IEnumerable<string>)null, (shared, flags) => shared == null ? flags : shared.Intersect(flags))
+                .FirstOrDefault();
+            Assert.That(routeControl, Is.Not.Empty, "fallback needs shared route control visitor=" + target.Id);
+            var producer = content.Visitors.FirstOrDefault(visitor => visitor.Day < target.Day &&
+                (visitor.FlagOnAdmit == routeControl || visitor.FlagOnDeny == routeControl));
+            Assert.That(producer, Is.Not.Null, "fallback route control producer=" + routeControl + ";visitor=" + target.Id);
+            PlanVisitorPrerequisites(content, producer, forcedDecisions, planning);
+            var absenceDecision = producer.FlagOnAdmit == routeControl ? Decision.Deny : Decision.Admit;
+            if (forcedDecisions.TryGetValue(producer.Id, out var existing))
+                Assert.That(existing, Is.EqualTo(absenceDecision), "conflicting fallback control visitor=" + producer.Id);
+            else
+                forcedDecisions.Add(producer.Id, absenceDecision);
+        }
 
         private static RunStateMachine CompleteWithPolicy(int seed, System.Func<RunStateMachine, VisitorDefinition, Decision, Decision> decision)
         {
@@ -235,11 +476,25 @@ namespace WhoEnters.Tests.EditMode.Content
 
         private static Decision Opposite(Decision value) => value == Decision.Admit ? Decision.Deny : Decision.Admit;
 
+        private static IEnumerable<string> RequiredFlags(VisitorDefinition visitor)
+        {
+            if (!string.IsNullOrWhiteSpace(visitor.RequiredFlag)) yield return visitor.RequiredFlag;
+            if (visitor.RequiredFlags == null) yield break;
+            foreach (var flag in visitor.RequiredFlags.Where(flag => !string.IsNullOrWhiteSpace(flag))) yield return flag;
+        }
+
         private readonly struct FlagProducer
         {
             public readonly string Flag;
             public readonly int Day;
             public FlagProducer(string flag, int day) { Flag = flag; Day = day; }
+        }
+
+        private readonly struct ReachabilityTarget
+        {
+            public readonly string VisitorId;
+            public readonly string OutcomeFlag;
+            public ReachabilityTarget(string visitorId, string outcomeFlag) { VisitorId = visitorId; OutcomeFlag = outcomeFlag; }
         }
     }
 }

@@ -11,7 +11,7 @@
 ## Prompt records
 
 1. **Preflight** — original storybook-cartoon dark-fantasy gatehouse viewed outward, warm torch-lit inward path on left, cold moat on right, uncluttered central card space, no UI/text/characters.
-2. **Castle vista** — distant warm castle and cobbled admit path on left, cold blue-black moat gorge on right, dusk sky, central card-safe region, no foreground gate or UI.
+2. **Castle vista** — distant warm castle and cobbled approach on left, cold blue-black moat gorge on right, dusk sky, central card-safe region, no foreground gate or UI.
 3. **Gate frame** — isolated chunky stone arch, open wooden doors, top portcullis, transparent central opening; no backdrop or glow.
 4. **Fog and rain** — sparse transparent teal fog at the right/lower moat edge with faint edge rain; center nearly clear.
 5. **Torches and glow** — two isolated warm torch sprites and feathered glows with transparent surroundings.
@@ -19,7 +19,7 @@
 
 ## Inspection outcome
 
-The preflight was directly inspected before final-layer generation. It establishes a readable warm-left/admit versus cold-right/deny split, gate-arch focal framing, sufficient central negative space, and a cute-dark storybook tone. Final-layer verification is deliberately data-only: dimensions, pixel formats, alpha extrema, file sizes, sorting contract, and SHA-256 checksums are recorded in `asset-manifest.json`.
+The preflight was directly inspected before final-layer generation. It establishes a readable warm-left/cold-right contrast, gate-arch focal framing, sufficient central negative space, and a cute-dark storybook tone. Runtime controls deliberately use an explicit right/admit and left/deny contract rather than inferring a verdict from the backdrop. Final-layer verification is deliberately data-only: dimensions, pixel formats, alpha extrema, file sizes, sorting contract, and SHA-256 checksums are recorded in `asset-manifest.json`.
 
 ## Known generation constraint
 

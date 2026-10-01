@@ -686,7 +686,10 @@ PlayerSettings:
   qnxGraphicConfPath: 
   apiCompatibilityLevel: 6
   captureStartupLogs: {}
-  activeInputHandler: -1
+  # Legacy Input Manager is deliberate: runtime keyboard fallbacks and the uGUI
+  # StandaloneInputModule both use UnityEngine.Input. Do not switch this project
+  # to Input System unless its runtime and EventSystem are migrated together.
+  activeInputHandler: 0
   windowsGamepadBackendHint: 0
   enableDirectStorage: 0
   cloudProjectId: 
@@ -713,5 +716,5 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/Gatehouse.unity
-    guid: 00000000000000000000000000000000
+    guid: 07db2673e8e5ce91c8e78f5023f123cb
   m_configObjects: {}

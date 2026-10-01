@@ -1,103 +1,89 @@
 # Who Enters? — Session Handoff
 
-**Last updated:** 2026-09-29 (Europe/Paris)  
-**Immediate next action:** Presentation must consume the branch-specific visitor IDs and terminal epilogue flags, then an integration owner must run the connected content+runtime/UI review. Every future agent must read this file before any action and may not relax these constraints.
+**Last updated:** 2026-10-01 (Europe/Paris)
+**Current state:** The harder-deduction default experience is implemented, headlessly verified, and has passed a fresh final documentation/cohesion re-review with no serious or minor findings. The next step is fetch/divergence and Git-identity inspection before a scoped commit and push; exclude transient `TestResults/`, `Logs/`, and `TestArtifacts/`. Do not build, export, package, or create an itch archive.
 
-## NON-NEGOTIABLE REQUIREMENTS
+## Non-negotiable continuation rules
 
-- [ ] Quality over speed: avoid downstream refinements through deliberate preflight, data validation, review, correction, and re-review.
-- [ ] Use dedicated **Terra-high** implementation agents: gameplay/core, environment, character-and-UI art, cards-and-narrative, audio, and QA/integration.
-- [ ] Use a **Sol-medium** technical monitor plus three additional aesthetic reviewers: art direction, mobile visual UX, and cohesion/polish.
-- [ ] Each reviewer must perform one isolated-component review and one review of that component connected to its dependencies.
-- [ ] A serious review finding requires a Terra correction followed by a fresh review; do not waive this for schedule reasons.
-- [ ] Development and QA are headless/data/state/event based only. Never automate the mouse, control the GUI/editor, capture screenshots, or use screenshot tests.
-- [ ] Keep structured, removable debug events and the debug overlay throughout development; remove only in the explicit later cleanup pass.
-- [ ] First version must be playable in Unity **6000.6.0f1**. Do **not** build, export, package, or create an itch archive. Final handoff opens the Unity Editor only so the user can press Play.
-- [ ] Preserve `/home/gm26/game` and `/home/gm26/blender-agent-pipeline`; they are unrelated, untouched old work.
-- [ ] Art must be original, coherent, polished storybook dark fantasy—not primitive placeholders. Record every external asset’s licence, source, checksum, modification status, and AI provenance.
-- [ ] Update this handoff at every completed milestone before moving to a dependent task.
+- Read this handoff, `/home/gm26/AGENTS.md`, and inspect `git status` before acting. Preserve all concurrent dirty work and respect bounded ownership.
+- Every implementation edit, including tests, content, UI, audio, assets, and corrections, belongs to a dedicated **gpt-5.6-terra** agent. **gpt-5.6-sol** is planning, monitoring, and review only.
+- Every reviewer inspects its isolated component and its behavior connected to dependencies. A serious finding requires a Terra correction and a fresh review; never waive or reuse a stale pass.
+- QA is headless and evidence-based: data, state, structured events, diagnostics, and tests only. Any earlier screenshot, video, or rendered-capture acceptance gate is superseded and removed. Do **not** automate Unity GUI/mouse input, capture screenshots or video, use screenshot tests, render-capture workflows, build, export, package, or archive.
+- Unity **6000.6.0f1** may be opened only when the user explicitly asks to press Play. Do not control an already-open editor.
+- Keep the structured debug stream and debug overlay until an explicit later cleanup pass. Debug output must remain useful without unbounded console logging.
+- Preserve `/home/gm26/game` and `/home/gm26/blender-agent-pipeline`; neither belongs to this repository task.
+- Treat `TestResults/` and `Logs/` as transient evidence: never include them in a commit.
 
-## Product and Repository
+## Product and repository
 
-- **Title/theme:** *Who Enters?* — a cute-but-dark storybook-fantasy castle gatekeeper game for the Slapjam “Castles” theme.
-- **Remote:** public `https://github.com/Thegm26/who-enters.git`
-- **Local project:** `/home/gm26/games/who-enters`
-- **Current branch:** `feature/gameplay-core` (coordinate integration rather than overwriting other shared-workspace changes).
-- **Unity editor:** `/home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity`
-- **Git identity:** `Thegm26 <georgios.michalakis26@gmail.com>` for author and committer.
-- **Content implementation checkpoint:** `0ae159fe7e1bb4fe90864084ca60d04bcfb1b351` contains the current story-branch correction; it was published non-destructively after fetch confirmed no divergent remote commits. Push every later checkpoint after fetch/divergence inspection.
+- **Game:** *Who Enters?*, a portrait, cute-but-dark storybook-fantasy castle gatekeeper game for the Slapjam “Castles” theme.
+- **Repository:** `/home/gm26/games/who-enters`, branch `feature/gameplay-core`; remote `https://github.com/Thegm26/who-enters.git`.
+- **Unity:** `/home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity`.
+- **Git identity:** `Thegm26 <georgios.michalakis26@gmail.com>` for both author and committer.
+- **Controls:** portrait logical 720×1280; swipe right = Admit and swipe left = Deny. Visible buttons plus arrow/D-A keyboard fallbacks have parity. Reduced motion remains supported.
+- **Run:** five days × eight frozen slots = forty decisions. Five integrity seals, existing scoring/streak behavior, deterministic seeded queues, four story chains, all four endings, and replay remain intact.
 
-## Approved Game Specification
+## Authoritative harder-deduction contract
 
-- Portrait, mobile-first Unity game at logical `720×1280`; touch swipe is primary, visible buttons and keyboard are fallback controls.
-- Five days, exactly eight frozen encounter slots per day, for forty resolved encounters on a completed run.
-- Swipe left admits to the castle; swipe right denies to the moat. Cards snap back below threshold.
-- Start with five integrity seals. A wrong official verdict costs one seal. Correct verdicts score `100 + 25 × min(streak, 4)`; an incorrect verdict resets streak.
-- Endings: `CastleFallen` at zero integrity; `HollowVictory` at 1–2 seals; `GateHeld` at 3–5; `TheGateRemembers` when the secret story flag is earned.
-- Seeded queues are deterministic (`-seed=<int>` command-line support). Story anchors retain authored encounter slots; independent visitors are seeded.
-- Four returning story chains have three appearances each. Required flags must be produced on an earlier day; each conditional slot needs a no-flag fallback. Mercy may knowingly violate a decree, cost integrity, and alter later branches only when represented explicitly by flag/outcome data.
-- Decrees, documents, traits, and visible cues must fully explain every expected verdict. No hidden knowledge can decide correctness.
+- Every visitor shows a complete categorized dossier of all authored **Documents**, **Visible Signs**, and **Traits**: one to four concise, unique facts, deterministically ordered and sufficient to reproduce evaluation. No pre-choice verdict, winning rule, or hidden evidence is shown.
+- Rules are priority ordered: first matching rule wins, with an explicit default-deny/no-exception outcome. Opposite-verdict priority conflicts are route-independent and exactly **D1=1, D2=2, D3=3, D4=4, D5=5** (Day 1=1, Day 2=2, Day 3=3, Day 4=4, Day 5=5). Remaining cases use harmless distractors or incomplete compound-rule near misses.
+- All 64 authored visitor IDs and story routes, every flag/branch/slot, and all four endings remain reachable. Conditional alternatives in the same slot preserve equivalent deduction difficulty.
+- `VerdictRecord` retains `RuleId` and full `RuleExplanation`; deterministic evaluation and structured diagnostics retain provenance, conflict, dossier-size, duplicate-fact, priority-copy, and answer-leak checks.
+- The optional Rulebook is the sole player-facing full decree/rule surface. Ordinary flow does not repeat rules. Pre-decision captions/dialogue are atmospheric or instructional only and cannot recommend a verdict or reveal a winning rule. After a choice, one concise human-readable deciding reason (or default explanation) precedes the existing story consequence; the full `RuleExplanation` remains available in the record and diagnostics, not repeatedly narrated to the player.
 
-## Shared Contracts and Architecture
+## Presentation, input, diagnostics, and audio
 
-- `Assets/Scripts/Core/GameContracts.cs`: `VisitorDefinition`, `RuleDefinition`, `DecreeDefinition`, `GameContent`, `GameState`, endings, verdicts. A visitor supports day/slot alternatives, priority, flags, dialogue, portrait key, traits, documents, and visible cues.
-- `Assets/Scripts/Core/RuleEvaluator.cs`: priority-ordered deterministic rule matching. Keep content predicates compatible; do not silently redesign core contracts.
-- `Assets/Scripts/Core/RunStateMachine.cs`: validates days, slots, fallbacks, flags, freezes queues, resolves verdicts, scores integrity, and selects ending.
-- `Assets/Scripts/Core/DebugTrace.cs`: structured diagnostic event store. New systems should emit stable event identifiers with compact key/value payloads.
-- `Assets/Scripts/Gameplay/DevelopmentContent.cs`: current placeholder provider. The content agent owns the new provider under `Assets/Scripts/Content`; integration must deliberately switch the runtime to it.
-- Runtime UI/director: `Assets/Scripts/Gameplay/GameDirector.cs`; it currently renders the data-driven visitor text/evidence and debug overlay.
-- Content ownership: `Assets/Scripts/Content/**`, `Assets/Tests/**/Content*`, `docs/content/**`, plus this handoff. Do not change Core, Gameplay, scenes, ProjectSettings, build files, environment/character/UI art, or audio from the content task.
+- The dossier card uses the established mobile-safe text/card zones at a 32px logical readable floor, with code-native readable backing; all facts are textual. Existing evidence art is supplementary only, non-raycast, capped at two icons in authored order, and tested for containment and >=44px physical silhouette across 360×640, 390×844, and 720×1280.
+- Rulebook modal gating is correct through caption completion. It masks decision routes while open, then recomputes readiness on close. Swipe, visible buttons, and keyboard respect the same gating.
+- HUD seals follow the five-seal policy. `DebugTrace.Recorded` remains exhaustive for test/data inspection; the overlay/console mirror is bounded, console mirroring defaults off, and errors remain visible.
+- All 64 direct visitor dialogue lines are distinct, atmospheric, evidence-safe, and <=44 characters; they do not reveal the verdict or repeat rulebook copy.
+- The old harsh arrival sound is replaced by a restrained procedural arrival cue. A serious cadence review finding was corrected: encounter slots are consumed only after actual playback, yielding 40 actual plays per run and 40 on replay; duplicate requests do not consume slots or create duplicate plays. Existing standard cue cooldown and polyphony behavior remains in force.
 
-## Current State and Reviews
+## Current implementation ownership and important paths
 
-- Baseline commit: `4cc7c48 feat: add Unity gatekeeper gameplay foundation`.
-- Baseline Unity EditMode suite: **7/7 passing** (recorded before this checkpoint); preserve this as the regression baseline.
-- Environment assets are in `Assets/Art/Environment/Runtime/`; provenance and asset contract are in `docs/environment/`. Public source mirrors live in `public/assets/environment/`.
-- Environment completed three review cycles and ended **PASS**, including ASTC importer overrides. Treat it as a dependency, not content-agent ownership.
-- **Environment recovery checkpoint:** revalidated unchanged against `origin/main` at `d534342` before this checkpoint: five exact `1440×2560` runtime layers plus two preflight files, exact public/runtime layer mirrors, manifest dimensions/formats/bytes/SHA-256 values, six unique environment GUIDs, sprite/PPU-100/clamp/bilinear/no-mipmap/no-fallback-physics importer settings, and Android+iPhone ASTC overrides (`50` RGB vista; `54` RGBA overlays). Unity `6000.6.0f1` imported the set headlessly, and the full EditMode suite passed **43/43** in `TestResults/editmode-environment-checkpoint.xml`; no environment drift or correction/re-review was required. Treat the test XML/log as transient and do not commit them.
-- Character/UI art isolated milestone is **PASS**: 16 canonical portrait keys, 9 core UI sprites, and 6 individual evidence/cue overlays (31 runtime PNGs total) live under `Assets/Art/Characters/` and `Assets/Art/UI/`, with exact public mirrors. `docs/art/ASSET_CONTRACT.md`, `PROVENANCE.md`, and schema-v2 `asset-manifest.json` are the source of truth for paths, dimensions, hashes, alpha, memory, import settings, GUIDs, provenance, button ColorTint state behavior, and evidence binding. Fresh technical and art-direction isolated reviews passed after correcting Unity's rewritten mobile importer records: 31 Android and 31 iPhone ASTC 6×6 overrides at texture format 54; zero iOS/48 overrides; 31 unique GUIDs; exact mirrors and zero manifest mismatches. Exact source RGBA sum is 163,575,376 bytes; auditable ASTC 6×6 estimate is 7,576,000 bytes (7.225 MiB). Independent Unity import/full EditMode rerun passed **43/43** at `TestResults/editmode-art-monitor-rereview.xml` with no import, compile, or fatal errors. Connected content/runtime and aesthetic review remains mandatory for card binding, mobile density, portrait differentiation, and evidence silhouette compactness.
-- Active/expected roles: character/UI-art implementation active; cards/narrative implementation active; technical monitor active. Later: audio implementation; QA/integration; Sol aesthetic reviews for art direction, mobile visual UX, and cohesion/polish.
-- **Serious review correction in progress:** the first content draft exposed roughly 43 portrait keys, conflicting with the approved sixteen-archetype art pipeline. Content now owns the fixed canonical set (`guard`, `courier`, `witch`, `goblin-merchant`, `commoner`, `shepherd`, `knight`, `noble`, `cleric`, `healer`, `child`, `giant`, `animal`, `bard`, `traveler`, `masked-cultist`), validates every key, and requires every archetype to be used. Fresh art/content review is mandatory after the headless test re-run.
-- Story-branch correction checkpoint: each Mira, Pip, Nella, and Rowan early outcome now resolves to a distinct later card with distinct visible evidence, dialogue, terminal epilogue input, and no silent reconvergence. `StoryContent.TerminalOutcomeFlags` plus `EpilogueInputs` make every outcome either consumed by a later conditional card or explicitly terminal. The fresh isolated Sol content review **PASSed with no serious or minor findings**.
-- Published checkpoint: `c2b3fb3 feat: add procedural gatehouse audio` is on `origin/main`; it follows the published content and presentation checkpoints and adds only audio-owned runtime/tests/docs plus the narrow audio hooks in `GameDirector`. Concurrent art, environment, public, and test-result work remains unstaged and untouched.
-- Headless branch verification: the filtered content suite is **10/10 passing** in `TestResults/editmode-content-branches.xml`; matching diagnostics are in `Logs/editmode-content-branches.log`, including `content.branch_diagnostic` for all four chains. A previous full suite was **24/27**, with all three failures owned by in-progress Presentation work: seven newly added fallback visitor captions, a `GameDirector.SetReducedMotion` null guard, and a typewriter punctuation expectation. Re-run the full suite after the presentation owner completes its correction.
-- Pending reviews: presentation must map all current authored visitor IDs and all `TerminalOutcomeFlags`; content connected runtime/UI review; fresh art/content review after the canonical-key correction; art-direction/mobile-UX/cohesion reviews after assets are connected; integration review after all components connect.
-- Narrative-presentation candidate is implemented under `Assets/Scripts/Presentation/` with a pure grapheme-aware 35 cps typewriter, punctuation pauses, first-action-completes/second-action-continues safety, caption catalog, story/outcome/ending copy, and raster-art binding hooks. The first isolated review found four serious defects (overlay keyboard leakage, three-action visitor verdicts, non-immediate reduced motion, and incomplete terminal epilogues); all were corrected. `GameDirector` now calls it for title, tutorial, daily decree, visitor, verdict, summary, and endings, blocks every hidden-modal decision route, and aggregates reached terminal epilogues in stable story order. Full headless EditMode verification passed **35/35** at `TestResults/editmode-presentation-rereview.xml` with `Logs/editmode-presentation-rereview-pass.log`. The mandatory fresh isolated review independently reran 35/35 and **PASSed with no findings**; the scoped checkpoint may be committed. Connected runtime/content/mobile-UX/cohesion review remains required after the approved content provider is wired.
-- Audio milestone complete: `Assets/Scripts/Audio/` provides an original deterministic 22,050 Hz mono procedural cue palette (castle wind/drone, bell, gate, tactile card cues, admit/deny, verdict/feedback, four endings, UI) with no downloaded samples. `GameAudio` creates clips/sources only after a deliberate interaction, persists mute, applies per-cue cooldown/polyphony, and emits removable `audio.*` diagnostics. A serious first-swipe parity defect was found in the first isolated Sol review: `input.drag_start` routed card pickup while still audio-locked. It was corrected so the synchronous primary pointer-down unlocks before pickup routing; first noncommitting swipes now provide ambient, pickup, rate-limited drag, and snapback, while committed swipes share that prefix and leave verdict sounds to `GameDirector`. HOW TO PLAY now follows the same activation/UI-click path. Focused EditMode verification is **8/8 passing** at `TestResults/editmode-audio.xml`; full EditMode verification is **43/43 passing** at `TestResults/editmode-all-after-audio.xml`. The mandatory fresh isolated Sol re-review independently reran **8/8** and **PASSed with no findings**. Connected runtime/content/art review remains mandatory after integration.
-- Minor known gap: the current runtime is still wired to `DevelopmentContent`; content integration is pending and must be performed by the gameplay/integration owner, not through an unreviewed cross-ownership edit.
+- Core/contracts: `Assets/Scripts/Core/GameContracts.cs`, `RuleEvaluator.cs`, `RunStateMachine.cs`, `DebugTrace.cs`.
+- Authored content/dossiers: `Assets/Scripts/Content/**` and content EditMode tests.
+- Runtime presentation/input: `Assets/Scripts/Gameplay/GameDirector.cs`, presentation/UI tests, and existing art bindings.
+- Audio: `Assets/Scripts/Audio/**` and audio tests.
+- Numeric mobile/layout contract: `docs/integration/GATEHOUSE_INTEGRATION.md`.
+- Keep existing original art/audio provenance and asset contracts intact. Do not add raster assets unless a newly reviewed blocking defect requires it.
 
-## Headless Commands and Results
+## Authoritative verification evidence
 
-Run from `/home/gm26/games/who-enters`; commands write only transient `TestResults/` and `Logs/` artifacts:
+All verification was headless in Unity 6000.6.0f1, using data/state/events/tests. The final full result supersedes earlier full-suite counts; no source or test is newer than it.
+
+- `TestResults/editmode-arrival-audio-focused-final.xml`: **15/15 PASS**.
+- `TestResults/editmode-arrival-connected-final.xml`: **1/1 PASS**.
+- `TestResults/editmode-arrival-full-final.xml`: **119/119 PASS** (authoritative full suite).
+- Supporting final evidence: `TestResults/editmode-rulebook-readability-final4.xml` **110/110 PASS**; `TestResults/editmode-rulebook-interleaving-full.xml` **115/115 PASS**; dialogue focused suite **19/19 PASS** and earlier full suite **118/118 PASS** (superseded by 119/119); HUD/diagnostics full suite **117/117 PASS**.
+- `git diff --check` passed after the final arrival/audio correction. Re-run it after any later edit.
+
+## Fresh review record
+
+- Core technical review: **PASS**.
+- Content/fairness review: **PASS**.
+- Mobile dossier/icon containment review: **PASS**.
+- Rulebook isolated and connected review: **PASS**.
+- Dialogue/content isolated and connected review: **PASS**.
+- HUD/audio re-review, including arrival cadence/replay: **PASS**.
+- Connected runtime/data-state review across gameplay, content, presentation, art bindings, audio cadence, and input routes: **PASS**.
+- Fresh final documentation/cohesion re-review: **PASS** — no serious or minor findings.
+
+## Headless test policy
+
+Run Unity only with `-batchmode -nographics`, preferably in a fresh `/tmp` project mirror while the user may have the original project open. Inspect XML/log evidence after a relevant change. Do not run player builds, web exports, GUI automation, screenshot/video capture, or screenshot tests.
 
 ```sh
-mkdir -p TestResults
 /home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity \
   -batchmode -nographics \
-  -projectPath /home/gm26/games/who-enters \
+  -projectPath <fresh-temp-mirror> \
   -runTests -testPlatform EditMode \
-  -testResults /home/gm26/games/who-enters/TestResults/editmode-results.xml \
-  -logFile /home/gm26/games/who-enters/Logs/editmode-tests.log
+  -testResults <mirror>/TestResults/editmode-results.xml \
+  -logFile <mirror>/Logs/editmode-tests.log
 ```
 
-Import/compile verification only (no build/export):
+## Ordered resume checklist
 
-```sh
-/home/gm26/Unity/Hub/Editor/6000.6.0f1/Editor/Unity \
-  -batchmode -nographics \
-  -projectPath /home/gm26/games/who-enters \
-  -logFile /home/gm26/games/who-enters/Logs/headless-import.log
-```
-
-Inspect `TestResults/editmode-results.xml`, `Logs/editmode-tests.log`, and `Logs/headless-import.log` after every relevant milestone. Do not run player builds, web exports, editor GUI automation, or screenshot workflows.
-
-## Ordered Resume Checklist
-
-1. Read this handoff and check `git status`; preserve concurrent agents’ work.
-2. Presentation owner maps current content visitor IDs and every `StoryContent.TerminalOutcomeFlags` consequence; rerun its missing-mapping check.
-3. Run the full headless EditMode suite and record XML/log totals. Correct the Presentation-owned failures before treating the content branch checkpoint as connected.
-4. Have gameplay/integration deliberately wire the approved content provider; do not patch foreign ownership silently.
-5. Obtain connected content+runtime/UI review; correct/re-review serious findings.
-6. Complete remaining art/audio work, then run all three aesthetic reviewers against isolated and connected states.
-7. Run QA/integration headlessly with data/state/event tests and diagnostic logs.
-8. When all acceptance gates pass, launch only the Unity Editor for the user to press Play. No build/export/package.
+1. Fetch and inspect remote divergence plus effective Git identity; preserve unrelated dirty changes.
+2. Make a scoped commit and push only the intended source/docs/assets, explicitly excluding transient `TestResults/`, `Logs/`, and `TestArtifacts/`. Do not claim a commit or push has occurred before then.
+3. Open Unity 6000.6.0f1 only if the user explicitly asks to press Play; never build, export, or package as part of this handoff.

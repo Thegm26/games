@@ -94,6 +94,87 @@ namespace WhoEnters.Tests.Audio
         }
 
         [Test]
+        public void CardArrivalIsSoftFadedAndConsonantRatherThanAHarshCreak()
+        {
+            var spec = AudioCueCatalog.All[AudioCueIds.GateOpen];
+            var samples = ProceduralAudioSynthesis.Generate(spec);
+            var peak = samples.Max(sample => Mathf.Abs(sample));
+            var rms = Mathf.Sqrt(samples.Average(sample => sample * sample));
+            var dc = Mathf.Abs(samples.Average());
+            var attackSamples = Mathf.RoundToInt(.02f * ProceduralAudioSynthesis.DefaultSampleRate);
+            var firstTwentyMillisecondsPeak = samples.Take(attackSamples).Max(sample => Mathf.Abs(sample));
+            var centralStart = Mathf.RoundToInt(.08f * ProceduralAudioSynthesis.DefaultSampleRate);
+            var centralEnd = Mathf.RoundToInt(.28f * ProceduralAudioSynthesis.DefaultSampleRate);
+            var zeroCrossings = 0;
+            for (var index = centralStart + 1; index < centralEnd; index++)
+                if ((samples[index - 1] < 0f && samples[index] >= 0f) || (samples[index - 1] >= 0f && samples[index] < 0f)) zeroCrossings++;
+            var estimatedFrequency = zeroCrossings / (2f * (centralEnd - centralStart) / ProceduralAudioSynthesis.DefaultSampleRate);
+
+            Assert.That(spec.Recipe, Is.EqualTo(AudioRecipe.GateCardArrival));
+            Assert.That(spec.DurationSeconds, Is.EqualTo(.72f).Within(.001f));
+            Assert.That(spec.Gain, Is.LessThanOrEqualTo(.18f));
+            Assert.That(peak, Is.LessThan(.15f), "arrival peak remains below tactile verdict/stamp impacts");
+            Assert.That(rms, Is.InRange(.01f, .07f), "arrival remains audible without crowding the ambient bed");
+            Assert.That(dc, Is.LessThan(.005f), "paired tonal partials have no audible DC bias");
+            Assert.That(firstTwentyMillisecondsPeak, Is.LessThan(.03f), "envelope prevents a click-like transient");
+            Assert.That(Mathf.Abs(samples[samples.Length - 1]), Is.LessThan(.0001f), "arrival ends quietly");
+            Assert.That(estimatedFrequency, Is.InRange(160f, 420f), "the settled storybook interval avoids a piercing pitch band");
+        }
+
+        [Test]
+        public void CardArrivalCadenceIsOncePerEncounterAcrossTheFortySlotRun()
+        {
+            var cadence = new EncounterArrivalCadence();
+            cadence.BeginRun();
+            for (var day = 1; day <= EncounterArrivalCadence.DaysPerRun; day++)
+            for (var encounter = 0; encounter < EncounterArrivalCadence.EncountersPerDay; encounter++)
+            {
+                Assert.That(cadence.TryAnnounce(day, encounter, out var key), Is.True, key);
+                Assert.That(cadence.TryAnnounce(day, encounter, out _), Is.False,
+                    "caption/decree/continuation rerenders cannot announce an already-entered slot");
+            }
+
+            Assert.That(cadence.AnnouncedCount, Is.EqualTo(40));
+            Assert.That(cadence.TryAnnounce(0, 0, out _), Is.False);
+            Assert.That(cadence.TryAnnounce(1, 8, out _), Is.False);
+        }
+
+        [Test]
+        public void CardArrivalCadenceAllowsEverySlotAgainAfterANewRun()
+        {
+            var cadence = new EncounterArrivalCadence();
+            cadence.BeginRun();
+            for (var day = 1; day <= EncounterArrivalCadence.DaysPerRun; day++)
+            for (var encounter = 0; encounter < EncounterArrivalCadence.EncountersPerDay; encounter++)
+                Assert.That(cadence.TryAnnounce(day, encounter, out _), Is.True, "run A " + day + ":" + encounter);
+
+            cadence.BeginRun();
+            Assert.That(cadence.RunGeneration, Is.EqualTo(2));
+            Assert.That(cadence.AnnouncedCount, Is.EqualTo(0));
+            for (var day = 1; day <= EncounterArrivalCadence.DaysPerRun; day++)
+            for (var encounter = 0; encounter < EncounterArrivalCadence.EncountersPerDay; encounter++)
+                Assert.That(cadence.TryAnnounce(day, encounter, out _), Is.True, "run B " + day + ":" + encounter);
+
+            Assert.That(cadence.AnnouncedCount, Is.EqualTo(40));
+        }
+
+        [Test]
+        public void CardArrivalCadenceRestartReenablesSlotsVisitedBeforeAnInterruptedRun()
+        {
+            var cadence = new EncounterArrivalCadence();
+            cadence.BeginRun();
+            Assert.That(cadence.TryAnnounce(1, 0, out _), Is.True);
+            Assert.That(cadence.TryAnnounce(3, 5, out _), Is.True);
+            Assert.That(cadence.TryAnnounce(1, 0, out _), Is.False);
+
+            cadence.BeginRun();
+
+            Assert.That(cadence.TryAnnounce(1, 0, out _), Is.True);
+            Assert.That(cadence.TryAnnounce(3, 5, out _), Is.True);
+            Assert.That(cadence.TryAnnounce(1, 0, out _), Is.False);
+        }
+
+        [Test]
         public void PlaybackPolicyEnforcesCooldownAndPolyphonyWithoutUnityAudioState()
         {
             var cooldown = new AudioCueSpec("cooldown", AudioCategory.Ui, AudioRecipe.UiClick, 1f, 1f, .5f, 2);
@@ -159,6 +240,90 @@ namespace WhoEnters.Tests.Audio
             Assert.That(audio.CachedClipCount, Is.EqualTo(2), "unmuting keeps the existing ambient clip rather than creating an autoplay duplicate");
             Assert.That(DebugTrace.Recent.Any(trace => trace.EventId == "audio.mute"), Is.True);
 
+            DestroyAudioHost(host, audio);
+        }
+
+        [Test]
+        public void GameAudioRequestsOneArrivalPerEncounterEvenWhenTheRenderPathRepeats()
+        {
+            var host = new GameObject("arrival-cadence-host");
+            var audio = host.AddComponent<GameAudio>();
+            InvokeAwake(audio);
+            audio.UnlockFromInteraction();
+            audio.BeginRun();
+
+            Assert.That(audio.PlayEncounterArrival(1, 0, "guard"), Is.True);
+            Assert.That(audio.PlayEncounterArrival(1, 0, "guard"), Is.False);
+            Assert.That(DebugTrace.Recent.Count(trace => trace.EventId == "audio.arrival"), Is.EqualTo(1));
+            Assert.That(DebugTrace.Recent.Count(trace => trace.EventId == "audio.arrival_suppressed"), Is.EqualTo(1));
+            Assert.That(DebugTrace.Recent.Last(trace => trace.EventId == "audio.arrival").Payload,
+                Does.Contain("cue=" + AudioCueIds.GateOpen).And.Contain("once=encounter").And.Contain("actual=true"));
+            Assert.That(DebugTrace.Recent.Count(trace => trace.EventId == "audio.play" && trace.Payload.Contains("cue=" + AudioCueIds.GateOpen)), Is.EqualTo(1),
+                "the accepted arrival must correspond to an actual cue play, not merely a request");
+            DestroyAudioHost(host, audio);
+        }
+
+        [Test]
+        public void GameAudioActuallyPlaysEveryArrivalAcrossFastFortySlotRunAndReplay()
+        {
+            var events = new List<TraceEvent>();
+            Action<TraceEvent> record = trace => events.Add(trace);
+            DebugTrace.Recorded += record;
+            var host = new GameObject("arrival-actual-playback-host");
+            var audio = host.AddComponent<GameAudio>();
+            try
+            {
+                InvokeAwake(audio);
+                audio.UnlockFromInteraction();
+
+                for (var generation = 1; generation <= 2; generation++)
+                {
+                    audio.BeginRun();
+                    for (var day = 1; day <= EncounterArrivalCadence.DaysPerRun; day++)
+                    for (var encounter = 0; encounter < EncounterArrivalCadence.EncountersPerDay; encounter++)
+                    {
+                        Assert.That(audio.PlayEncounterArrival(day, encounter, "visitor-" + day + "-" + encounter), Is.True,
+                            "generation " + generation + " slot " + day + ":" + encounter);
+                        Assert.That(audio.PlayEncounterArrival(day, encounter, "visitor-" + day + "-" + encounter), Is.False,
+                            "same slot remains duplicate-suppressed after its actual cue plays");
+                    }
+
+                    Assert.That(audio.EncounterArrivalCadence.AnnouncedCount, Is.EqualTo(40), "generation " + generation);
+                    var expectedActualPlays = generation * 40;
+                    Assert.That(events.Count(trace => trace.EventId == "audio.play" && trace.Payload.Contains("cue=" + AudioCueIds.GateOpen)
+                        && trace.Payload.Contains("policy=arrival_slot")), Is.EqualTo(expectedActualPlays),
+                        "fast progression must count real source.Play calls rather than only arrival requests");
+                    Assert.That(events.Count(trace => trace.EventId == "audio.arrival"), Is.EqualTo(expectedActualPlays));
+                }
+
+                Assert.That(events.Count(trace => trace.EventId == "audio.arrival_suppressed" && trace.Payload.Contains("duplicate_or_invalid")), Is.EqualTo(80));
+            }
+            finally
+            {
+                DebugTrace.Recorded -= record;
+                DestroyAudioHost(host, audio);
+            }
+        }
+
+        [Test]
+        public void GameAudioStartsANewArrivalGenerationWithoutChangingUnlockMuteOrPlaybackPolicy()
+        {
+            var host = new GameObject("arrival-run-host");
+            var audio = host.AddComponent<GameAudio>();
+            InvokeAwake(audio);
+            audio.UnlockFromInteraction();
+            audio.BeginRun();
+            Assert.That(audio.PlayEncounterArrival(1, 0, "guard"), Is.True);
+            var policy = audio.PlaybackPolicy;
+
+            audio.BeginRun();
+
+            Assert.That(audio.EncounterArrivalCadence.RunGeneration, Is.EqualTo(2));
+            Assert.That(audio.PlayEncounterArrival(1, 0, "guard"), Is.True);
+            Assert.That(audio.IsInteractionUnlocked, Is.True);
+            Assert.That(audio.IsMuted, Is.False);
+            Assert.That(audio.PlaybackPolicy, Is.SameAs(policy));
+            Assert.That(DebugTrace.Recent.Count(trace => trace.EventId == "audio.arrival_run_started"), Is.EqualTo(2));
             DestroyAudioHost(host, audio);
         }
 

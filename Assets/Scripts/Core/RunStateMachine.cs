@@ -48,9 +48,19 @@ namespace WhoEnters.Core
             State.Streak = correct ? State.Streak + 1 : 0;
             State.Integrity += integrityDelta;
             AddFlag(chosen == Decision.Admit ? visitor.FlagOnAdmit : visitor.FlagOnDeny);
-            var record = new VerdictRecord { VisitorId = visitor.Id, Chosen = chosen, Expected = evaluation.Expected, Correct = correct, ScoreDelta = scoreDelta, IntegrityDelta = integrityDelta };
+            var record = new VerdictRecord
+            {
+                VisitorId = visitor.Id,
+                Chosen = chosen,
+                Expected = evaluation.Expected,
+                RuleId = evaluation.RuleId,
+                RuleExplanation = evaluation.Explanation,
+                Correct = correct,
+                ScoreDelta = scoreDelta,
+                IntegrityDelta = integrityDelta,
+            };
             State.Verdicts.Add(record);
-            DebugTrace.Log("verdict.resolved", $"visitor={visitor.Id};choice={chosen};expected={evaluation.Expected};rule={evaluation.RuleId};correct={correct};scoreDelta={scoreDelta};integrityDelta={integrityDelta};score={State.Score};streak={State.Streak};integrity={State.Integrity}");
+            DebugTrace.Log("verdict.resolved", $"visitor={visitor.Id};choice={chosen};expected={evaluation.Expected};rule={evaluation.RuleId};usedDefault={evaluation.UsedDefault};correct={correct};scoreDelta={scoreDelta};integrityDelta={integrityDelta};score={State.Score};streak={State.Streak};integrity={State.Integrity}");
             Advance();
             return record;
         }
@@ -124,8 +134,9 @@ namespace WhoEnters.Core
         {
             foreach (var candidate in candidates.OrderByDescending(visitor => visitor.AlternativePriority).ThenBy(visitor => StableOrder(visitor.Id, State.Seed)))
             {
-                var eligible = string.IsNullOrWhiteSpace(candidate.RequiredFlag) || State.StoryFlags.Contains(candidate.RequiredFlag);
-                DebugTrace.Log("visitor.alternative_evaluated", $"day={day};slot={candidate.EncounterSlot};visitor={candidate.Id};requiredFlag={candidate.RequiredFlag};eligible={eligible}");
+                var requiredFlags = RequiredFlags(candidate).ToArray();
+                var eligible = requiredFlags.All(State.StoryFlags.Contains);
+                DebugTrace.Log("visitor.alternative_evaluated", $"day={day};slot={candidate.EncounterSlot};visitor={candidate.Id};requiredFlags={string.Join(",", requiredFlags)};eligible={eligible}");
                 if (eligible) return candidate;
             }
             DebugTrace.Error("visitor.alternative_missing", $"day={day};slot={candidates.First().EncounterSlot}");
@@ -189,7 +200,7 @@ namespace WhoEnters.Core
                 foreach (var slot in slots)
                 {
                     var alternatives = content.Visitors.Where(visitor => visitor.Day == day && visitor.EncounterSlot == slot).ToArray();
-                    Assert(alternatives.Any(visitor => string.IsNullOrWhiteSpace(visitor.RequiredFlag)), "content.missing_slot_fallback", $"day={day};slot={slot}");
+                    Assert(alternatives.Any(visitor => !RequiredFlags(visitor).Any()), "content.missing_slot_fallback", $"day={day};slot={slot}");
                 }
             }
             var flagsByProducerDay = new Dictionary<string, int>();
@@ -198,10 +209,14 @@ namespace WhoEnters.Core
                 RegisterProducedFlag(flagsByProducerDay, visitor.FlagOnAdmit, visitor.Day);
                 RegisterProducedFlag(flagsByProducerDay, visitor.FlagOnDeny, visitor.Day);
             }
-            foreach (var visitor in content.Visitors.Where(visitor => !string.IsNullOrWhiteSpace(visitor.RequiredFlag)))
+            foreach (var visitor in content.Visitors)
             {
-                Assert(flagsByProducerDay.TryGetValue(visitor.RequiredFlag, out var producerDay) && producerDay < visitor.Day,
-                    "content.invalid_flag_reference", $"visitor={visitor.Id};required={visitor.RequiredFlag}");
+                var requiredFlags = RequiredFlags(visitor).ToArray();
+                Assert(requiredFlags.Distinct().Count() == requiredFlags.Length,
+                    "content.duplicate_required_flag", $"visitor={visitor.Id};required={string.Join(",", requiredFlags)}");
+                foreach (var requiredFlag in requiredFlags)
+                    Assert(flagsByProducerDay.TryGetValue(requiredFlag, out var producerDay) && producerDay < visitor.Day,
+                        "content.invalid_flag_reference", $"visitor={visitor.Id};required={requiredFlag}");
             }
             DebugTrace.Log("content.validated", $"decrees={content.Decrees.Count};visitors={content.Visitors.Count};days={content.TotalDays}");
         }
@@ -210,6 +225,13 @@ namespace WhoEnters.Core
         {
             if (string.IsNullOrWhiteSpace(flag)) return;
             if (!flagsByProducerDay.TryGetValue(flag, out var existingDay) || day < existingDay) flagsByProducerDay[flag] = day;
+        }
+
+        private static IEnumerable<string> RequiredFlags(VisitorDefinition visitor)
+        {
+            if (!string.IsNullOrWhiteSpace(visitor.RequiredFlag)) yield return visitor.RequiredFlag;
+            if (visitor.RequiredFlags == null) yield break;
+            foreach (var flag in visitor.RequiredFlags.Where(flag => !string.IsNullOrWhiteSpace(flag))) yield return flag;
         }
 
         private static void Assert(bool condition, string eventId, string payload)

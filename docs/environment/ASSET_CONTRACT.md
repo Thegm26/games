@@ -23,13 +23,13 @@ Use one `Sorting Layer` named `Environment` and this order, from back to front:
 
 | Order | File | Role | Runtime motion |
 | ---: | --- | --- | --- |
-| 0 | `Assets/Art/Environment/Runtime/01-castle-vista.png` | Opaque distant castle, admit-side path, deny-side moat | slow 0.02x parallax |
+| 0 | `Assets/Art/Environment/Runtime/01-castle-vista.png` | Opaque distant castle, warm approach, cold moat | slow 0.02x parallax |
 | 10 | `Assets/Art/Environment/Runtime/02-gate-frame.png` | Gatehouse stone, open doors, portcullis | static |
 | 20 | `Assets/Art/Environment/Runtime/03-fog-rain.png` | Low-contrast weather overlay | fog 0.08x horizontal drift; rain UV/position loop |
 | 30 | `Assets/Art/Environment/Runtime/04-torches-glow.png` | Torches and warm glow | 0.95–1.05 alpha/intensity flicker |
 | 40 | `Assets/Art/Environment/Runtime/05-foreground-silhouettes.png` | Parapet, pines, moat rocks and chain | 0.12x parallax |
 
-Place visitor cards and decree UI above order 40, preferably on their own `GameplayUI` sorting layer. The card-safe region is approximately `x 20%–80%` and `y 24%–84%` on every layer. Do not mirror the scene: the warm path is always left/admit and the moat is always right/deny.
+Place visitor cards and decree UI above order 40, preferably on their own `GameplayUI` sorting layer. The card-safe region is approximately `x 20%–80%` and `y 24%–84%` on every layer. Do not mirror the scene: the warm approach remains left and the moat remains right, while the explicit interaction mapping is right/admit and left/deny.
 
 ## Runtime texture budget
 

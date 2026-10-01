@@ -6,7 +6,7 @@ namespace WhoEnters.Audio
     public enum AudioCategory { Ambient, Interaction, Verdict, Feedback, Ui, Ending }
     public enum AudioRecipe
     {
-        CastleWindDrone, DistantBell, GateCreak, CardPickup, CardRustle, CardSnapback,
+        CastleWindDrone, DistantBell, GateCardArrival, CardPickup, CardRustle, CardSnapback,
         AdmitLock, DenyChainMoat, VerdictStamp, SealCrack, StreakChime, FallingEnding,
         HollowEnding, HeldEnding, SecretEnding, UiClick
     }
@@ -62,7 +62,10 @@ namespace WhoEnters.Audio
         {
             { AudioCueIds.AmbientWind, new AudioCueSpec(AudioCueIds.AmbientWind, AudioCategory.Ambient, AudioRecipe.CastleWindDrone, 8f, .18f, 0f, 1, true) },
             { AudioCueIds.DayTransition, new AudioCueSpec(AudioCueIds.DayTransition, AudioCategory.Ambient, AudioRecipe.DistantBell, 2.8f, .30f, 1.2f, 1) },
-            { AudioCueIds.GateOpen, new AudioCueSpec(AudioCueIds.GateOpen, AudioCategory.Interaction, AudioRecipe.GateCreak, 1.0f, .32f, .42f, 1) },
+            // A soft low gate resonance with a small parchment-like upper interval.  It is
+            // intentionally quieter and shorter than verdict feedback, so a new card feels
+            // placed at the gate rather than slammed into the scene.
+            { AudioCueIds.GateOpen, new AudioCueSpec(AudioCueIds.GateOpen, AudioCategory.Interaction, AudioRecipe.GateCardArrival, .72f, .18f, .55f, 1) },
             { AudioCueIds.CardPickup, new AudioCueSpec(AudioCueIds.CardPickup, AudioCategory.Interaction, AudioRecipe.CardPickup, .16f, .16f, .18f, 1) },
             { AudioCueIds.CardDrag, new AudioCueSpec(AudioCueIds.CardDrag, AudioCategory.Interaction, AudioRecipe.CardRustle, .12f, .09f, .18f, 1) },
             { AudioCueIds.CardSnapback, new AudioCueSpec(AudioCueIds.CardSnapback, AudioCategory.Interaction, AudioRecipe.CardSnapback, .26f, .18f, .12f, 1) },

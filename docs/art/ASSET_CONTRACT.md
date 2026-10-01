@@ -2,15 +2,15 @@
 
 ## Runtime inventory
 
-The Unity runtime imports **31 PNG sprites** from `Assets/Art/Characters/` and `Assets/Art/UI/`: sixteen portrait archetypes, nine core UI assets, and six reusable evidence/cue overlays. Source-identical mirrors live in `public/assets/characters/` and `public/assets/ui/`; they are provenance mirrors, not Unity runtime locations.
+The Unity runtime imports **31 PNG sprites** from `Assets/Art/Characters/` and `Assets/Art/UI/`: sixteen portrait archetypes, nine core UI assets, and six reusable evidence/cue overlays. It also has two explicit redistributable UI fonts in `Assets/Fonts/`. Source-identical mirrors live in `public/assets/characters/`, `public/assets/ui/`, and `public/assets/fonts/`; they are provenance mirrors, not Unity runtime locations.
 
 Canonical portrait file names exactly match `StoryContent.CanonicalPortraitKeys`: `animal`, `bard`, `child`, `cleric`, `commoner`, `courier`, `giant`, `goblin-merchant`, `guard`, `healer`, `knight`, `masked-cultist`, `noble`, `shepherd`, `traveler`, and `witch`.
 
-All portraits are original 1024×1536 RGBA, chest-up portraits on transparent backgrounds. Place one at a time in the visitor-card portrait zone, preserve aspect, anchor bottom-centre, and never crop above the forehead or below the upper torso.
+All portraits are original 1024×1536 RGBA, chest-up art with transparent outer margins **and an intentionally retained in-image orange/black (warm/cool) vignette field behind the visitor**. They are not clean cutouts and must not be composited as though their interiors are transparent. Place one at a time in the card's explicit portrait window, preserve aspect, anchor bottom-centre, and preserve the visible upper-torso baseline; never crop above the forehead or below the upper torso. The card window provides the shared dark-to-amber backdrop so the portrait's retained vignette reads as an intentional, cohesive nested treatment.
 
 | Asset | Purpose | Integration rule |
 | --- | --- | --- |
-| `visitor-card.png` | Visitor frame | `Image.type = Sliced`; portrait occupies upper zone; name, dialogue and evidence stay live text. |
+| `visitor-card.png` | Landscape visitor frame | Native `1536×1024` (3:2); `Image.type = Simple`, `preserveAspect = true`, no sprite border/9-slice. Present at `640×427` inside the 640×430 card allocation to avoid distortion. Use the left framed `210×330` portrait window with bottom-centre alignment. Name, dialogue, and evidence stay live text in the quiet right parchment field. |
 | `decree-parchment.png` | Decree/tutorial panel | `Image.type = Sliced`; live title and decree copy only. |
 | `day-ending-panel.png` | Day summary/ending panel | `Image.type = Sliced`; live score, integrity and epilogue copy only. |
 | `admit-button.png`, `deny-button.png` | Decision buttons | `Image.type = Sliced`; labels are live text, not raster text. |
@@ -42,12 +42,12 @@ All other authored cues stay as high-contrast live evidence text until a dedicat
 
 ## Importer contract
 
-Every runtime PNG has an explicit Unity importer `.meta`: Sprite, 100 PPU, bilinear filtering, clamp wrapping, sRGB, alpha transparency, mipmaps off, Read/Write off, fallback physics shape off. Android and iPhone use explicit ASTC 6×6 overrides (Unity texture format 54).
+Every runtime PNG has an explicit Unity importer `.meta`: Sprite, 100 PPU, bilinear filtering, clamp wrapping, sRGB, alpha transparency, mipmaps off, Read/Write off, fallback physics shape off. Android and iPhone use explicit ASTC 4×4 overrides (Unity texture format 54).
 
 | Group | Mobile max size | Sprite border |
 | --- | ---: | ---|
 | Portraits | 1024 | 0 |
-| Visitor card | 1024 | L/R 80, B/T 112 |
+| Visitor card | 1024 | 0 (Simple/aspect-preserved; 9-slice is intentionally unsuitable for this full landscape composition) |
 | Decree parchment | 1024 | L/R 64, B/T 96 |
 | Day/ending panel | 1024 | L/R 72, B/T 96 |
 | Admit/Deny buttons | 1024 | L/R 110, B/T 190 |
@@ -59,3 +59,12 @@ Every runtime PNG has an explicit Unity importer `.meta`: Sprite, 100 PPU, bilin
 - UI uses the established midnight blue, antique gold, parchment, emerald-admit and crimson-deny palette.
 - No raster asset contains text, logo, watermark, copied game trade dress, or an unlicensed external element.
 - Do not use anything in `docs/art/rejected/` or either preflight contact sheet at runtime.
+
+## Typography asset contract
+
+| Role | Stable Unity path | Face | Use |
+| --- | --- | --- | --- |
+| Display | `Assets/Fonts/GrenzeGotisch-SemiBold.ttf` | Grenze Gotisch SemiBold | Titles, decree headings, visitor names, short stamped feedback only. Keep mixed case and do not use it for long body copy. |
+| Body/UI | `Assets/Fonts/AtkinsonHyperlegible-Regular.otf` | Atkinson Hyperlegible Regular | Dialogue, decrees, evidence, buttons, captions, status, and accessibility-critical UI. This is the required default for mobile readability. |
+
+Both font files are direct Unity-imported `Font` assets with generated `.meta` import records. Their full SIL Open Font License 1.1 texts are retained in `Assets/Fonts/Licenses/`, and identical public provenance mirrors retain the same files under `public/assets/fonts/`. Runtime integration must assign these assets directly; `LegacyRuntime.ttf`, operating-system fonts, and implicit built-in fallbacks are forbidden for production UI.
