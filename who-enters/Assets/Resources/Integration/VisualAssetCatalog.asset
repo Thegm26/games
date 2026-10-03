@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eeefe67296233727eb00217438b0969a, type: 3}
+  m_Name: VisualAssetCatalog
+  m_EditorClassIdentifier: WhoEnters.Runtime::WhoEnters.Integration.VisualAssetCatalog
+  CastleVista: {fileID: 21300000, guid: 7a8e8fb4b0864f4b8f9e0268a9d852fa, type: 3}
+  GateFrame: {fileID: 21300000, guid: c1f8aee7a1bb4e8b97e87eff2fcb1f27, type: 3}
+  FogRain: {fileID: 21300000, guid: 5b7080e0394c4c7eb782c26a3df23192, type: 3}
+  TorchesGlow: {fileID: 21300000, guid: f1009b78bb6c4878b8bd3e0a1d3c2547, type: 3}
+  ForegroundSilhouettes: {fileID: 21300000, guid: d4c55c927c314292a5dc00fe00c95818, type: 3}
+  VisitorCard: {fileID: 21300000, guid: 5084120be1db4fc0bbaaf347ee348983, type: 3}
+  DecreeParchment: {fileID: 21300000, guid: 29e4f1278f78b2f1a816cf6ea8ba85da, type: 3}
+  DayEndingPanel: {fileID: 21300000, guid: 868a1e417b62c6c0c9b2078766904ab6, type: 3}
+  AdmitButton: {fileID: 21300000, guid: aaeae2ada59cfd6e2847cc71e5a151bb, type: 3}
+  DenyButton: {fileID: 21300000, guid: d6b0bb5256c5ce663859d136196617b0, type: 3}
+  VerdictAdmit: {fileID: 21300000, guid: 0e86f425d075095ceba26f67b00533b3, type: 3}
+  VerdictDeny: {fileID: 21300000, guid: 5e7321215922d755e955d129e9cff033, type: 3}
+  IntegrityIntact: {fileID: 21300000, guid: 59f364c69d5b6e2a1b83412171448af0, type: 3}
+  IntegrityBroken: {fileID: 21300000, guid: 1f4ec66fd218762ffa3a95d7bb70c9df, type: 3}
+  DisplayFont: {fileID: 12800000, guid: 8a7ef64af27bc506b9727022dd19ef90, type: 3}
+  BodyFont: {fileID: 12800000, guid: c28e86259bb7a279ab552b0d6205351b, type: 3}
+  Portraits:
+  - Key: guard
+    Sprite: {fileID: 21300000, guid: e4610cc0561e85a618dc992f42987f3c, type: 3}
+  - Key: courier
+    Sprite: {fileID: 21300000, guid: 0a81b23e47d9638fbcd20878aaeb4fc5, type: 3}
+  - Key: witch
+    Sprite: {fileID: 21300000, guid: cbdbee4e4019540108348f33c39fcbb4, type: 3}
+  - Key: goblin-merchant
+    Sprite: {fileID: 21300000, guid: cd258dd48b28833e18823a52bc3706af, type: 3}
+  - Key: commoner
+    Sprite: {fileID: 21300000, guid: e79cda2f4316d8e1ab90796468950f15, type: 3}
+  - Key: shepherd
+    Sprite: {fileID: 21300000, guid: ba4f4edcf641f69b18539e5cb1f6306f, type: 3}
+  - Key: knight
+    Sprite: {fileID: 21300000, guid: 7b19a52adadb6c8768be607f3c3429f0, type: 3}
+  - Key: noble
+    Sprite: {fileID: 21300000, guid: 7f818ed8e76fc431f84b859bcfb76000, type: 3}
+  - Key: cleric
+    Sprite: {fileID: 21300000, guid: 5638179f5625f5616b99d84364812b78, type: 3}
+  - Key: healer
+    Sprite: {fileID: 21300000, guid: 275898fcf26077265ae3abe5ff22b712, type: 3}
+  - Key: child
+    Sprite: {fileID: 21300000, guid: a7fcfbe112708ff21a13b7bfa2b55591, type: 3}
+  - Key: giant
+    Sprite: {fileID: 21300000, guid: ffc8a8dcbb0db78b790cb56437d94b59, type: 3}
+  - Key: animal
+    Sprite: {fileID: 21300000, guid: 7bac39cf98fb8d42e9f930d8ede5ebb4, type: 3}
+  - Key: bard
+    Sprite: {fileID: 21300000, guid: c63ea1921353fd8cb9cb1b95d915040e, type: 3}
+  - Key: traveler
+    Sprite: {fileID: 21300000, guid: cdc98ac1a4f35add28e5e61538898fcb, type: 3}
+  - Key: masked-cultist
+    Sprite: {fileID: 21300000, guid: facb33971fd455436aecbc4f7a70ad96, type: 3}
+  Evidence:
+  - Key: moon-seal
+    Sprite: {fileID: 21300000, guid: dcbf0bb0ea004124bc2d6caa507c62e7, type: 3}
+  - Key: forged-seal
+    Sprite: {fileID: 21300000, guid: b4fb3d99377b4afebdd1e5e266022c14, type: 3}
+  - Key: healer-writ-kit
+    Sprite: {fileID: 21300000, guid: c09e1b25334d44f0aee715db4f948385, type: 3}
+  - Key: royal-counterseal
+    Sprite: {fileID: 21300000, guid: ed5a09a4c8fb49afad1b27a6c8a2ab34, type: 3}
+  - Key: red-lantern
+    Sprite: {fileID: 21300000, guid: 1bc42ecfa0ec47ef999a4c9208a51f4a, type: 3}
+  - Key: traitor-mark
+    Sprite: {fileID: 21300000, guid: 9b432fc8424249cf9a4013c1cf6f2453, type: 3}
